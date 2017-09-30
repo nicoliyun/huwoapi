@@ -4,6 +4,7 @@ Suite Teardown    删除session
 Force Tags        002
 Resource          B-DM(司机端接口逻辑).txt
 Resource          elements.txt
+Library           string
 
 *** Test Cases ***
 DM-001司机获取动态密码

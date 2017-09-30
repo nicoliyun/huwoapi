@@ -9,7 +9,6 @@ Documentation     创建session：获取会话session
 Suite Setup       创建session
 Suite Teardown    删除session
 Force Tags        001
-Library           Selenium2Library
 Resource          elements.txt
 Resource          A-PM(乘客端接口逻辑).txt
 

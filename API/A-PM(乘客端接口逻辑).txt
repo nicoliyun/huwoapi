@@ -1,9 +1,7 @@
 *** Settings ***
 Library           mylibraryrequests
 Resource          elements.txt
-Library           mdfivelibrary
 Library           requests
-Library           EncodeTest.py
 
 *** Keywords ***
 A-PM001-获取动态验证码
@@ -832,7 +830,7 @@ A-PM032-2.0文件上传接口
     [Documentation]    ('1.png', open('C:/Users/Administrator/Desktop/photos/2.png', 'rb'), 'image/png')
     ...
     ...    open('C:/Users/Administrator/Desktop/photos/2.png','rb')
-    ${file}    Evaluate     open('${photosUrl}','rb')
+    ${file}    Evaluate    open('${photosUrl}','rb')
     ${multipe_file}    Create Dictionary    file=${file}
     Comment    ${header}    Create Dictionary    Content-Type=application/json
     ${response}    Post Request    URL    /uploads/file    files=${multipe_file}
