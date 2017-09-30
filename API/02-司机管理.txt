@@ -1,0 +1,136 @@
+*** Settings ***
+Suite Setup       创建session
+Suite Teardown    删除session
+Force Tags        002
+Resource          B-DM(司机端接口逻辑).txt
+Resource          elements.txt
+
+*** Test Cases ***
+DM-001司机获取动态密码
+    B-DM001司机获取动态验证码    ${excelurl_DM}    AuthCode    1    5    200
+
+DM-002司机登录
+    B-DM002司机登录    ${excelurl_DM}    dLogin    1    6    200
+
+DM-003司机出车
+    B-DM003司机出车    ${excelurl_DM}    dRenter    1    6    200    0
+
+DM-004获取司机账户信息
+    B-DM004获取司机账户信息    ${excelurl_DM}    dAccount    1    5    200
+
+DM-005司机退出登录
+    B-DM005司机退出登录    ${excelurl_DM}    dLogout    1    5    200    0
+    ...    True    成功退出登录！
+
+DM-006司机注册
+    B-DM006司机注册    ${excelurl_DM}    dRegister    1    11    200
+
+DM-007司机信息完善
+    B-DM007司机信息完善    ${excelurl_DM}    dEdit    1    20    200    0
+
+DM-008司机重新登录
+    B-DM008司机重新登录    ${excelurl_DM}    dRefreshToken    1    6    200    0
+
+DM-009获取司机详情
+    B-DM009获取司机详情    ${excelurl_DM}    getDriverDetail    1    5    200
+
+DM-010获取推送订单司机详情
+    B-DM010获取推送订单司机详情    ${excelurl_DM}    getPushOrderInfo    1    6    200
+
+DM-011获取司机在具体某范围基于当前用户坐标
+    B-DM011获取司机在具体某范围基于当前用户坐标    ${excelurl_DM}    listDrivers    1    10    200
+
+DM-012司机更新经纬度坐标
+    B-DM012司机更新经纬度坐标    ${excelurl_DM}    dUpdateLocation    1    7    200    0
+    ...    True
+
+DM-013获取司机评论列表
+    B-DM013获取司机评论列表    ${excelurl_DM}    listComment    1    7    200    0
+
+DM-014司机查看推荐的乘客
+    B-DM014司机查看推荐的乘客    ${excelurl_DM}    listMemberShip    1    6    200
+
+DM-0015司机收车
+    B-DM0015司机收车    ${excelurl_DM}    dRexit    1    6    200    0
+    ...    True
+
+DM-016-2.0版本司机登陆首页信息展示
+    B-DM016司机登陆首页信息展示    ${excelurl_dship}    firstpageMessage    1    5    200
+
+DM-017-2.0版本司机注册
+    B-DM017-2.0版本司机注册    ${excelurl_dship}    dRegister    1    7    200
+
+DM-018-2.0版本忘记密码
+    B-DM018-2.0版本忘记密码    ${excelurl_dship}    dForgetPwd    1    8    200
+
+DM-019-2.0版本司机登录
+    B-DM019-2.0司机登录    ${excelurl_dship}    dLogin    1    6    200
+
+DM-020-2.0版本司机反馈
+    B-DM020-2.0版本司机反馈    ${excelurl_dship}    driverFeedBack    1    6    200
+
+DM-021-2.0版本重置司机提现密码
+    B-DM021-2.0重置司机提现密码    ${excelurl_dship}    updatePPassword    1    11    200
+
+DM-022-2.0版本行程列表
+    B-DM022-2.0行程列表    ${excelurl_dship}    listDriverTrip    1    8    200
+
+DM-023-2.0版本获取司机指定周出车明细(默认最近一周)
+    B-DM023-2.0获取司机指定周出车明细(默认最近一周)    ${excelurl_dship}    listWeek    1    6    200
+
+DM-024-2.0版本获取指定周司机在线总时长(默认获取最近一周)
+    B-DM024-2.0获取指定周司机在线总时长(默认获取最近一周)    ${excelurl_dship}    getWeekInfo    1    6    200
+
+DM-025-2.0版本司机修改密码
+    B-DM025-2.0司机修改密码    ${excelurl_dship}    updatePassword    1    8    200
+
+DM-026-2.0版本出租车司机到达乘客终点
+    B-DM026-2.0版本出租车司机到达乘客终点    ${excelurl_dship}    endOrder    1    11    200
+
+DM-027-2.0版本司机向平台发起订单垫付
+    B-DM027-2.0版本司机向平台发起订单垫付    ${excelurl_dship}    advancePayOrder    1    5    200
+
+DM-028-2.0版本司机向平台发起申诉
+    B-DM028-2.0版本司机向平台发起申诉    ${excelurl_dship}    appealOrder    1    5    200
+
+DM-029-2.0版本司机向乘客发起催款
+    B-DM029-2.0版本司机向乘客发起催款    ${excelurl_dship}    urgePayOrder    1    5    200
+
+DM-030-2.0版本我的升级状态
+    B-DM030-2.0版本我的升级状态    ${excelurl_dship}    upgradeState    1    5    200
+
+DM-031-2.0版本司机认证模块基本信息提交
+    B-DM031-2.0版本司机认证模块基本信息提交    ${excelurl_dship}    rz_basicMassageVerifyAndSave    1    12    200
+
+DM-032-2.0版本我的升级进入下一步
+    B-DM032-2.0版本我的升级进入下一步    ${excelurl_dship}    upgradeNext    1    5    200
+
+DM-033-2.0版本可提现余额查询
+    B-DM033-2.0版本可提现余额查询    ${excelurl_dship}    getAccountBalance    1    5    200
+
+DM-034-2.0版本获取银行卡信息
+    B-DM034-2.0版本获取银行卡信息    ${excelurl_dship}    getBankInfo    1    5    200
+
+DM-035-2.0版本提现功能
+    B-DM035-2.0版本提现功能    ${excelurl_dship}    doWithdraw    1    5    200
+
+DM-036-2.0版本查询提现记录
+    B-DM036-2.0版本查询提现记录    ${excelurl_dship}    getWithdrawInfo    1    5    200
+
+DM-037-2.0版本查询司机总收入今日收入
+    B-DM037-2.0版本查询司机总收入今日收入    ${excelurl_dship}    getDriverIncome    1    5    200
+
+DM-038-2.0版本查询司机支付未支付的订单信息
+    B-DM038-2.0版本查询司机支付未支付的订单信息    ${excelurl_dship}    getDriverAccountInfo    1    5    200
+
+DM-039-2.0版本司机认证模块获取服务城市
+    B-DM039-2.0版本司机认证模块获取服务城市    ${excelurl_dship}    rz_credentialsVerifyAndSave    1    5    200
+
+DM-040-2.0版本司机认证模块获取分公司
+    B-DM040-2.0版本司机认证模块获取分公司    ${excelurl_dship}    rz_cityListOrFilialeList    1    5    200
+
+DM-041-2.0版本司机认证模块获取所属公司
+    B-DM041-2.0版本司机认证模块获取所属公司    ${excelurl_dship}    rz_cityListOrFilialeList02    1    5    200
+
+DM-042-2.0版本司机认证身份证认证
+    B-DM042-2.0版本司机认证身份证认证    ${excelurl_dship}    rz_credentialsVerifyAndSave02    1    11    200

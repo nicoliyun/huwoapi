@@ -1,0 +1,1061 @@
+*** Settings ***
+Library           mylibraryrequests
+Resource          elements.txt
+Library           mdfivelibrary
+Library           requests
+Library           EncodeTest.py
+
+*** Keywords ***
+A-PM001-获取动态验证码
+    [Arguments]    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}    ${code}    ${assertmsg}
+    [Documentation]    传入参数：
+    ...
+    ...    ${excelurl} ： Excel存放的相对路径地址
+    ...
+    ...    ${sheetname}：用例所在sheet的sheet名称
+    ...
+    ...    ${rownum}：用例所在行号（第二行开始取，取值为1）
+    ...
+    ...    ${colnum}：用例所在列号（取值断言之前的列）
+    ...
+    ...    ${code}：状态码
+    ...
+    ...    ${assertmsg}: 断言内容
+    ${dict}    添加header
+    ${pamras}    获取请求参数    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}
+    ${resp}    get请求    ${pamras}    ${dict}
+    结果状态码验证    ${resp}    ${code}
+    ${data}    返回结果验证    ${resp}
+    log    ${data}
+    ${assert}    Set Variable    ${data['success']}
+    Should Be Equal As Strings    ${assert}    ${assertmsg}
+
+A-PM002-乘客登录
+    [Arguments]    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}    ${code}    ${errormsg}
+    [Documentation]    传入参数：
+    ...
+    ...    ${excelurl} ： Excel存放的相对路径地址
+    ...
+    ...    ${sheetname}：用例所在sheet的sheet名称
+    ...
+    ...    ${rownum}：用例所在行号（第二行开始取，取值为1）
+    ...
+    ...    ${colnum}：用例所在列号（取值断言之前的列）
+    ...
+    ...    ${code}：状态码
+    ...
+    ...    ${errormsg} : 断言 error 值
+    ${dict}    添加header
+    ${params}    获取请求参数    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}
+    ${response}    Post请求    ${params}    headers=${dict}
+    结果状态码验证    ${response}    ${code}
+    ${json_data}    返回结果验证    ${response}
+    log    ${json_data}
+    ${token}    Set Variable    ${json_data['token']}
+    ${token_length}    Get Length    ${token}
+    Should Be Equal As Integers    ${token_length}    17
+    ${error}    Set Variable    ${json_data['error']}
+    Should Be Equal As Numbers    ${error}    ${errormsg}
+
+A-PM005-乘客信息完善
+    [Arguments]    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}    ${code}    ${errormsg}
+    [Documentation]    传入参数：
+    ...
+    ...    ${excelurl} ： Excel存放的相对路径地址
+    ...
+    ...    ${sheetname}：用例所在sheet的sheet名称
+    ...
+    ...    ${rownum}：用例所在行号（第二行开始取，取值为1）
+    ...
+    ...    ${colnum}：用例所在列号（取值断言之前的列）
+    ...
+    ...    ${code}：状态码
+    ...
+    ...    ${errormsg} :断言error的值
+    ${return_value}    获取乘客端的token和乘客ID
+    ${dict}    添加header
+    ${params}    获取请求参数    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}
+    log    ${params}
+    ${newparams}    Set Variable    ${params}${return_value[0]}
+    ${newest_params}    Set Variable    ${newparams}&id=${return_value[1]}
+    log    ${newest_params}
+    ${response}    Post请求    ${newest_params}    headers=${dict}
+    结果状态码验证    ${response}    ${code}
+    log    ${response.content}
+    ${data_json}    To Json    ${response.content}
+    log    ${data_json}
+    ${json_token}    Set Variable    ${data_json['token']}
+    ${token_length}    Get Length    ${json_token}
+    Should Be Equal As Integers    ${token_length}    17
+    ${msg}    Set Variable    ${data_json['error']}
+    Should Be Equal As Numbers    ${msg}    ${errormsg}
+
+A-PM006-获取乘客账户信息
+    [Arguments]    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}    ${code}
+    [Documentation]    传入参数：
+    ...
+    ...    ${excelurl} ： Excel存放的相对路径地址
+    ...
+    ...    ${sheetname}：用例所在sheet的sheet名称
+    ...
+    ...    ${rownum}：用例所在行号（第二行开始取，取值为1）
+    ...
+    ...    ${colnum}：用例所在列号（取值断言之前的列）
+    ...
+    ...    ${code}：状态码
+    ${return_value}    获取乘客端的token和乘客ID
+    ${dict}    添加header
+    ${params}    获取请求参数    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}
+    ${newparams}    Set Variable    ${params}${return_value[0]}&memberId=${return_value[1]}
+    ${response}    Post请求    ${newparams}    headers=${dict}
+    结果状态码验证    ${response}    ${code}
+    log    ${response.content}
+    ${data_json}    To Json    ${response.content}
+    log    ${data_json}
+    ${account}    Set Variable    ${data_json['data']['account']}
+    Should Be Equal As Strings    ${account}    TEST1021437
+
+A-PM007获取当前用户的优惠券信息
+    [Arguments]    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}    ${code}    ${errormsg}
+    [Documentation]    传入参数：
+    ...
+    ...    ${excelurl} ： Excel存放的相对路径地址
+    ...
+    ...    ${sheetname}：用例所在sheet的sheet名称
+    ...
+    ...    ${rownum}：用例所在行号（第二行开始取，取值为1）
+    ...
+    ...    ${colnum}：用例所在列号（取值断言之前的列）
+    ...
+    ...    ${code}：状态码
+    ...
+    ...    ${errormsg} : 断言error 的值
+    ${return_value}    获取乘客端的token和乘客ID
+    ${dict}    添加header
+    ${params}    获取请求参数    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}
+    ${new_params}    Set Variable    ${params}${return_value[0]}
+    ${response}    get请求    ${new_params}    ${dict}
+    结果状态码验证    ${response}    ${code}
+    log    ${response.content}
+    ${data_json}    To Json    ${response.content}
+    log    ${data_json}
+    ${message}    Set Variable    ${data_json['error']}
+    Should Be Equal As Integers    ${message}    ${errormsg}
+
+A-PM008乘客推荐乘客（作废）
+    [Arguments]    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}    ${code}
+    [Documentation]    传入参数：
+    ...
+    ...    ${excelurl} ： Excel存放的相对路径地址
+    ...
+    ...    ${sheetname}：用例所在sheet的sheet名称
+    ...
+    ...    ${rownum}：用例所在行号（第二行开始取，取值为1）
+    ...
+    ...    ${colnum}：用例所在列号（取值断言之前的列）
+    ...
+    ...    ${code}：状态码
+    ${dict}    添加header
+    ${params}    获取请求参数    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}
+    ${new_params}    Set Variable    ${params}
+    ${response}    get请求    ${new_params}    ${dict}
+    结果状态码验证    ${response}    ${code}
+    Comment    log    ${response.content}
+    Comment    ${data_json}    To Json    ${response.content}
+    Comment    log    ${data_json}
+    Comment    ${message}    Set Variable    ${data_json['error']}
+    Comment    Should Be Equal As Integers    ${message}    0
+
+A-PM009查询附近实时司机
+    [Arguments]    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}    ${code}    ${errormsg}
+    [Documentation]    传入参数：
+    ...
+    ...    ${excelurl} ： Excel存放的相对路径地址
+    ...
+    ...    ${sheetname}：用例所在sheet的sheet名称
+    ...
+    ...    ${rownum}：用例所在行号（第二行开始取，取值为1）
+    ...
+    ...    ${colnum}：用例所在列号（取值断言之前的列）
+    ...
+    ...    ${code}：状态码
+    ...
+    ...    ${errormsg} : 断言 error 的值是否正常
+    ${return_value}    获取乘客端的token和乘客ID
+    ${dict}    添加header
+    ${params}    获取请求参数    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}
+    ${new_params}    Set Variable    ${params}${return_value[0]}
+    ${response}    get请求    ${new_params}    ${dict}
+    结果状态码验证    ${response}    ${code}
+    Comment    log    ${response.content}
+    Comment    ${json_data}    返回结果验证    ${response}
+    Comment    log    ${json_data}
+    Comment    ${errorcode}    Set Variable    ${json_data['error']}
+    Comment    Should Be Equal As Numbers    ${errorcode}    ${errormsg}
+
+A-PM010-2.0版本查看发票对应的行程单信息
+    [Arguments]    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}    ${code}    ${errormsg}
+    [Documentation]    传入参数：
+    ...
+    ...    ${excelurl} ： Excel存放的相对路径地址
+    ...
+    ...    ${sheetname}：用例所在sheet的sheet名称
+    ...
+    ...    ${rownum}：用例所在行号（第二行开始取，取值为1）
+    ...
+    ...    ${colnum}：用例所在列号（取值断言之前的列）
+    ...
+    ...    ${code}：状态码
+    ...
+    ...    ${errormsg} : 断言error 的值
+    ${return_value}    获取乘客端的token和乘客ID
+    ${header}    添加header
+    ${params}    获取请求参数    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}
+    ${new_params}    Set Variable    ${params}${return_value[0]}
+    ${response}    Post请求    ${new_params}    headers=${header}
+    结果状态码验证    ${response}    ${code}
+    ${json_resp}    返回结果验证    ${response}
+    log    ${json_resp}
+    ${errorcode}    Set Variable    ${json_resp['error']}
+    Should Be Equal As Numbers    ${errorcode}    ${errormsg}
+
+A-PM011-2.0获取发票详细内容
+    [Arguments]    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}    ${code}    ${errormsg}
+    [Documentation]    传入参数：
+    ...
+    ...    ${excelurl} ： Excel存放的相对路径地址
+    ...
+    ...    ${sheetname}：用例所在sheet的sheet名称
+    ...
+    ...    ${rownum}：用例所在行号（第二行开始取，取值为1）
+    ...
+    ...    ${colnum}：用例所在列号（取值断言之前的列）
+    ...
+    ...    ${code}：状态码
+    ...
+    ...    ${errormsg} : 断言error 的值
+    ${return_value}    获取乘客端的token和乘客ID
+    ${header}    添加header
+    ${params}    获取请求参数    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}
+    ${new_params}    Set Variable    ${params}${return_value[0]}
+    ${response}    Post请求    ${new_params}    headers=${header}
+    结果状态码验证    ${response}    ${code}
+    ${json_data}    返回结果验证    ${response}
+    log    ${json_data}
+    ${assert_orderCount}    Set Variable    ${json_data['orderCount']}
+    ${assert_detail}    Set Variable    ${json_data['detail']}
+    ${assert_error}    Set Variable    ${json_data['error']}
+    ${detail_length}    Get Length    ${assert_detail}
+    log    ${detail_length}
+    Comment    当有多个发票时
+    Comment    Should Be Equal    ${assert_orderCount}    ${detail_length}
+    Should Be Equal As Numbers    ${assert_error}    ${errormsg}
+
+A-PM012-2.0获取开票历史信息
+    [Arguments]    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}    ${code}    ${errormsg}
+    [Documentation]    传入参数：
+    ...
+    ...    ${excelurl} ： Excel存放的相对路径地址
+    ...
+    ...    ${sheetname}：用例所在sheet的sheet名称
+    ...
+    ...    ${rownum}：用例所在行号（第二行开始取，取值为1）
+    ...
+    ...    ${colnum}：用例所在列号（取值断言之前的列）
+    ...
+    ...    ${code}：状态码
+    ...
+    ...    ${errormsg} : 断言error 的值
+    ${return_value}    获取乘客端的token和乘客ID
+    ${token}    Set Variable    ${return_value[0]}
+    ${member_id}    Set Variable    ${return_value[1]}
+    ${header}    添加header
+    ${params}    获取请求参数    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}
+    ${new_params}    Set Variable    ${params}${token}&memberShipID=${member_id}
+    ${response}    Post请求    ${new_params}    headers=${header}
+    结果状态码验证    ${response}    ${code}
+    ${json_data}    返回结果验证    ${response}
+    ${error_code}    Set Variable    ${json_data['error']}
+    ${resp_total}    Set Variable    ${json_data['total']}
+    ${resp_rows}    Set Variable    ${json_data['rows']}
+    ${rows_number}    Get Length    ${resp_rows}
+    Should Be Equal    ${resp_total}    ${rows_number}
+    Should Be Equal As Numbers    ${error_code}    ${errormsg}
+
+A-PM013-2.0APP获取当前用户的优惠券信息
+    [Arguments]    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}    ${code}    ${errormsg}
+    [Documentation]    传入参数：
+    ...
+    ...    ${excelurl} ： Excel存放的相对路径地址
+    ...
+    ...    ${sheetname}：用例所在sheet的sheet名称
+    ...
+    ...    ${rownum}：用例所在行号（第二行开始取，取值为1）
+    ...
+    ...    ${colnum}：用例所在列号（取值断言之前的列）
+    ...
+    ...    ${code}：状态码
+    ...
+    ...    ${errormsg} : 断言error 的值
+    ${return_value}    获取乘客端的token和乘客ID
+    ${token}    Set Variable    ${return_value[0]}
+    ${header}    添加header
+    ${params}    获取请求参数    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}
+    ${new_params}    Set Variable    ${params}${token}
+    ${response}    Post请求    ${new_params}    headers=${header}
+    结果状态码验证    ${response}    ${code}
+    ${json_data}    返回结果验证    ${response}
+    ${error_code}    Set Variable    ${json_data['error']}
+    Comment    ${resp_rows}    Set Variable    ${json_data['rows']}
+    Should Be Equal As Numbers    ${error_code}    ${errormsg}
+
+A-PM014-2.0APP乘客获取行程信息
+    [Arguments]    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}    ${code}    ${errormsg}
+    [Documentation]    传入参数：
+    ...
+    ...    ${excelurl} ： Excel存放的相对路径地址
+    ...
+    ...    ${sheetname}：用例所在sheet的sheet名称
+    ...
+    ...    ${rownum}：用例所在行号（第二行开始取，取值为1）
+    ...
+    ...    ${colnum}：用例所在列号（取值断言之前的列）
+    ...
+    ...    ${code}：状态码
+    ...
+    ...    ${errormsg} : 断言error 的值
+    ${return_value}    获取乘客端的token和乘客ID
+    ${token}    Set Variable    ${return_value[0]}
+    ${header}    添加header
+    ${params}    获取请求参数    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}
+    ${new_params}    Set Variable    ${params}${token}
+    ${response}    Post请求    ${new_params}    headers=${header}
+    结果状态码验证    ${response}    ${code}
+    ${json_data}    返回结果验证    ${response}
+    ${error_code}    Set Variable    ${json_data['error']}
+    ${total}    Set Variable    ${json_data['total']}
+    ${rows}    Set Variable    ${json_data['rows']}
+    ${rows_length}    Get Length    ${rows}
+    Should Be Equal As Numbers    ${error_code}    ${errormsg}
+    Should Be Equal    ${total}    ${rows_length}
+
+A-PM015-2.0发起主租车订单
+    [Arguments]    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}    ${code}    ${errormsg}
+    [Documentation]    传入参数：
+    ...
+    ...    ${excelurl} ： Excel存放的相对路径地址
+    ...
+    ...    ${sheetname}：用例所在sheet的sheet名称
+    ...
+    ...    ${rownum}：用例所在行号（第二行开始取，取值为1）
+    ...
+    ...    ${colnum}：用例所在列号（取值断言之前的列）
+    ...
+    ...    ${code}：状态码
+    ...
+    ...    ${errormsg} : 断言error 的值
+    ${return_value}    获取乘客端的token和乘客ID
+    ${token}    Set Variable    ${return_value[0]}
+    ${member_id}    Set Variable    ${return_value[1]}
+    Comment    ${select_order_status}    Set Variable    SELECT State FROM biz_order WHERE MemberShipID=${member_id} ORDER BY CreateDate DESC;
+    Comment    ${select_order_ID}    Set Variable    SELECT ID FROM `biz_order` WHERE MemberShipID=${member_id} ORDER BY CreateDate DESC;
+    Comment    连接数据库    pymysql    database='callme',user='cqhwcx_8888',password='cqhwcx_8888',host='rm-wz919cz55o24u21a7o.mysql.rds.aliyuncs.com',port=3306,charset='utf8'
+    Comment    ${order_Id}    查询数据库    ${select_order_ID}
+    Comment    ${order_status}    查询数据库    ${select_order_status}
+    Comment    ${newest_order}    Set Variable    ${order_status[0][0]}
+    Comment    ${newest_Id}    Set Variable    ${order_Id[0][0]}
+    Comment    Run Keyword If    ${newest_order}!=100    Execute Sql String    UPDATE biz_order SET State=100 WHERE ID=${newest_Id}
+    Comment    断开数据库
+    ${header}    Create Dictionary    token=${token}
+    ${params}    获取请求参数    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}
+    Comment    ${encode_params}    Myencode    ${params}
+    ${new_params}    Set Variable    ${params}&memberId=${member_id}
+    ${response}    Post请求    ${new_params}    headers=${header}
+    结果状态码验证    ${response}    ${code}
+    ${json_data}    返回结果验证    ${response}
+    ${orderId}    Set Variable    ${json_data['message']}
+    Set Global Variable    ${orderId}
+    ${resp_success}    Set Variable    ${json_data['success']}
+    ${error_code}    Set Variable    ${json_data['error']}
+    Should Be Equal As Strings    ${resp_success}    True
+    Should Be Equal As Numbers    ${error_code}    ${errormsg}
+    [Return]    ${orderId}
+
+A-PM041-2.0 预取消订单
+    [Arguments]    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}    ${code}
+    ${return_value}    获取乘客端的token和乘客ID
+    ${token}    Set Variable    ${return_value[0]}
+    ${member_id}    Set Variable    ${return_value[1]}
+    ${header}    添加header
+    ${params}    获取请求参数    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}
+    ${newparams}    Set Variable    ${params}${token}&id=${orderId}
+    ${response}    Post请求    ${newparams}    headers=${header}
+    结果状态码验证    ${response}    ${code}
+    ${json_data}    返回结果验证    ${response}
+    Run Keyword If    ${json_data['error']}==0    Pass Execution    INFO: test passed
+    ...    ELSE    ${json_data['error']}==1    log    Info:${json_data['message']}
+    [Return]    ${colloctionId}
+
+A-PM042-2.0 取消订单原因
+    [Arguments]    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}    ${code}
+    ${return_value}    获取乘客端的token和乘客ID
+    ${token}    Set Variable    ${return_value[0]}
+    ${member_id}    Set Variable    ${return_value[1]}
+    Comment    ${header_order}    Create Dictionary    token=${token}
+    Comment    ${params}    获取请求参数    ${excelurl_mship}    createOrder    1    5
+    Comment    ${new_params}    Set Variable    ${params}&memberId=${member_id}
+    Comment    ${response}    Post请求    ${new_params}    headers=${header_order}
+    Comment    ${json_data}    返回结果验证    ${response}
+    Comment    ${order_id}    Set Variable    ${json_data['message']}
+    ${header}    添加header
+    ${params}    获取请求参数    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}
+    ${newparams}    Set Variable    ${params}${token}&id=${orderId}
+    ${response}    Post请求    ${newparams}    headers=${header}
+    结果状态码验证    ${response}    ${code}
+    ${json_data}    返回结果验证    ${response}
+    Run Keyword If    ${json_data['error']}==0    Pass Execution    INFO: test passed
+    ...    ELSE    ${json_data['error']}==1    fail
+    [Return]    ${colloctionId}
+
+A-PM040-2.0取消订单
+    [Arguments]    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}    ${code}
+    ${return_value}    获取乘客端的token和乘客ID
+    ${token}    Set Variable    ${return_value[0]}
+    ${member_id}    Set Variable    ${return_value[1]}
+    ${header}    添加header
+    ${params}    获取请求参数    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}
+    ${newparams}    Set Variable    ${params}${token}&id=${orderId}
+    ${response}    Post请求    ${newparams}    headers=${header}
+    结果状态码验证    ${response}    ${code}
+    ${json_data}    返回结果验证    ${response}
+    Run Keyword If    ${json_data['error']}==0    Pass Execution    INFO: test passed
+    ...    ELSE    ${json_data['error']}==1    fail
+    [Return]    ${colloctionId}
+
+A-PM016-2.0提交开具发票
+    [Arguments]    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}    ${code}    ${errormsg}
+    [Documentation]    传入参数：
+    ...
+    ...    ${excelurl} ： Excel存放的相对路径地址
+    ...
+    ...    ${sheetname}：用例所在sheet的sheet名称
+    ...
+    ...    ${rownum}：用例所在行号（第二行开始取，取值为1）
+    ...
+    ...    ${colnum}：用例所在列号（取值断言之前的列）
+    ...
+    ...    ${code}：状态码
+    ...
+    ...    ${errormsg} : 断言error 的值
+    ${return_value}    获取乘客端的token和乘客ID
+    ${token}    Set Variable    ${return_value[0]}
+    ${memberId}    Set Variable    ${return_value[1]}
+    ${select}    Set Variable    SELECT ID FROM biz_order WHERE MemberShipID=${memberId} ORDER BY CreateDate DESC;
+    连接数据库    pymysql    database='callme',user='cqhwcx_8888',password='cqhwcx_8888',host='rm-wz919cz55o24u21a7o.mysql.rds.aliyuncs.com',port=3306,charset='utf8'
+    ${table}    查询数据库    ${select}
+    断开数据库
+    ${orderId}    Set Variable    ${table[0][0]}
+    ${header}    添加header
+    ${params}    获取请求参数    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}
+    ${new_orderId}    Set Variable    {"id":${orderId}}
+    ${new_params}    Set Variable    ${params}${token}&memberShipId=${memberId}&orderId=${new_orderId}
+    ${response}    Post请求    ${new_params}    headers=${header}
+    结果状态码验证    ${response}    ${code}
+    ${json_data}    返回结果验证    ${response}
+    ${error_code}    Set Variable    ${json_data['error']}
+    ${resp_rows}    Set Variable    ${json_data['rows']}
+    ${resp_total}    Set Variable    ${json_data['total']}
+    ${rows_length}    Get Length    ${resp_rows}
+    log    ${rows_length}
+    Should Be Equal As Numbers    ${error_code}    ${errormsg}
+    Should Be Equal    ${resp_total}    ${rows_length}
+
+A-PM017-2.0获取可以开票的订单信息
+    [Arguments]    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}    ${code}    ${errormsg}
+    [Documentation]    传入参数：
+    ...
+    ...    ${excelurl} ： Excel存放的相对路径地址
+    ...
+    ...    ${sheetname}：用例所在sheet的sheet名称
+    ...
+    ...    ${rownum}：用例所在行号（第二行开始取，取值为1）
+    ...
+    ...    ${colnum}：用例所在列号（取值断言之前的列）
+    ...
+    ...    ${code}：状态码
+    ...
+    ...    ${errormsg} : 断言error 的值
+    ${return_value}    获取乘客端的token和乘客ID
+    ${token}    Set Variable    ${return_value[0]}
+    ${member_Id}    Set Variable    ${return_value[1]}
+    ${header}    添加header
+    ${params}    获取请求参数    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}
+    ${new_params}    Set Variable    ${params}${token}
+    ${response}    Post请求    ${new_params}    headers=${header}
+    结果状态码验证    ${response}    ${code}
+    ${json_data}    返回结果验证    ${response}
+    ${error_code}    Set Variable    ${json_data['error']}
+    ${resp_total}    Set Variable    ${json_data['total']}
+    ${resp_rows}    Set Variable    ${json_data['rows']}
+    ${rows_length}    Get Length    ${resp_rows}
+    Should Be Equal As Numbers    ${error_code}    ${errormsg}
+    Should Be Equal    ${resp_total}    ${rows_length}
+
+A-PM018-2.0保存乘客家庭常用公司地址
+    [Arguments]    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}    ${code}    ${errormsg}
+    [Documentation]    传入参数：
+    ...
+    ...    ${excelurl} ： Excel存放的相对路径地址
+    ...
+    ...    ${sheetname}：用例所在sheet的sheet名称
+    ...
+    ...    ${rownum}：用例所在行号（第二行开始取，取值为1）
+    ...
+    ...    ${colnum}：用例所在列号（取值断言之前的列）
+    ...
+    ...    ${code}：状态码
+    ...
+    ...    ${errormsg} : 断言error 的值
+    ${return_value}    获取乘客端的token和乘客ID
+    ${token}    Set Variable    ${return_value[0]}
+    ${member_Id}    Set Variable    ${return_value[1]}
+    ${header}    添加header
+    ${params}    获取请求参数    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}
+    ${new_params}    Set Variable    ${params}${token}&Id=${member_Id}
+    ${response}    Post请求    ${new_params}    headers=${header}
+    结果状态码验证    ${response}    ${code}
+    ${json_data}    返回结果验证    ${response}
+    ${error_code}    Set Variable    ${json_data['error']}
+    Should Be Equal As Numbers    ${error_code}    ${errormsg}
+    Run Keyword If    ${error_code}!=0    Pass Execution    ${json_data['message']}
+
+A-PM019-2.0出租车发起订单增加小费(作废)
+    [Arguments]    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}    ${code}    ${errormsg}
+    [Documentation]    传入参数：
+    ...
+    ...    ${excelurl} ： Excel存放的相对路径地址
+    ...
+    ...    ${sheetname}：用例所在sheet的sheet名称
+    ...
+    ...    ${rownum}：用例所在行号（第二行开始取，取值为1）
+    ...
+    ...    ${colnum}：用例所在列号（取值断言之前的列）
+    ...
+    ...    ${code}：状态码
+    ...
+    ...    ${errormsg} : 断言error 的值
+    ${return_value}    获取乘客端的token和乘客ID
+    ${token}    Set Variable    ${return_value[0]}
+    ${member_Id}    Set Variable    ${return_value[1]}
+    ${header}    Create Dictionary    token=${token}
+    ${select}    Set Variable    SELECT ID FROM biz_order WHERE MemberShipID=${memberId} ORDER BY CreateDate DESC;
+    连接数据库    pymysql    database='callme',user='cqhwcx_8888',password='cqhwcx_8888',host='rm-wz919cz55o24u21a7o.mysql.rds.aliyuncs.com',port=3306,charset='utf8'
+    ${table}    查询数据库    ${select}
+    断开数据库
+    ${orderId}    Set Variable    ${table[0][0]}
+    ${params}    获取请求参数    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}
+    ${new_params}    Set Variable    ${params}&Id=${orderId}
+    ${response}    Post请求    ${new_params}    headers=${header}
+    结果状态码验证    ${response}    ${code}
+    ${json_data}    返回结果验证    ${response}
+    ${error_code}    Set Variable    ${json_data['error']}
+    Should Be Equal As Numbers    ${error_code}    ${errormsg}
+
+A-PM020-2.0删除常用地址
+    [Arguments]    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}    ${code}    ${errormsg}
+    [Documentation]    传入参数：
+    ...
+    ...    ${excelurl} ： Excel存放的相对路径地址
+    ...
+    ...    ${sheetname}：用例所在sheet的sheet名称
+    ...
+    ...    ${rownum}：用例所在行号（第二行开始取，取值为1）
+    ...
+    ...    ${colnum}：用例所在列号（取值断言之前的列）
+    ...
+    ...    ${code}：状态码
+    ...
+    ...    ${errormsg} : 断言error 的值
+    ${return_value}    获取乘客端的token和乘客ID
+    ${token}    Set Variable    ${return_value[0]}
+    ${member_Id}    Set Variable    ${return_value[1]}
+    ${header}    添加header
+    ${params}    获取请求参数    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}
+    ${new_params}    Set Variable    ${params}${token}&Id=${member_Id}
+    ${response}    Post请求    ${new_params}    headers=${header}
+    结果状态码验证    ${response}    ${code}
+    ${json_data}    返回结果验证    ${response}
+    ${error_code}    Set Variable    ${json_data['error']}
+    Should Be Equal As Numbers    ${error_code}    ${errormsg}
+
+A-PM021-2.0下单的时候自己选择司机
+    [Arguments]    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}    ${code}    ${errormsg}
+    [Documentation]    传入参数：
+    ...
+    ...    ${excelurl} ： Excel存放的相对路径地址
+    ...
+    ...    ${sheetname}：用例所在sheet的sheet名称
+    ...
+    ...    ${rownum}：用例所在行号（第二行开始取，取值为1）
+    ...
+    ...    ${colnum}：用例所在列号（取值断言之前的列）
+    ...
+    ...    ${code}：状态码
+    ...
+    ...    ${errormsg} : 断言error 的值
+    ${return_value}    获取乘客端的token和乘客ID
+    ${token}    Set Variable    ${return_value[0]}
+    ${member_Id}    Set Variable    ${return_value[1]}
+    ${header}    添加header
+    ${params}    获取请求参数    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}
+    ${new_params}    Set Variable    ${params}${token}&memberId=${member_Id}
+    ${response}    Post请求    ${new_params}    headers=${header}
+    结果状态码验证    ${response}    ${code}
+    ${json_data}    返回结果验证    ${response}
+    ${error_code}    Set Variable    ${json_data['error']}
+    Should Be Equal As Numbers    ${error_code}    ${errormsg}
+
+A-PM022-2.0乘客收藏司机
+    [Arguments]    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}    ${code}    ${errormsg}
+    ...    ${success_msg}    ${message_result}
+    ${return_value}    获取乘客端的token和乘客ID
+    ${token}    Set Variable    ${return_value[0]}
+    ${member_Id}    Set Variable    ${return_value[1]}
+    ${header}    添加header
+    ${params}    获取请求参数    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}
+    ${newparams}    Set Variable    ${params}${token}&id=${member_Id}
+    ${response}    Post请求    ${newparams}    headers=${header}
+    结果状态码验证    ${response}    ${code}
+    ${json_data}    返回结果验证    ${response}
+    ${error_code}    Set Variable    ${json_data['error']}
+    ${resp_success}    Run Keyword If    ${error_code}==1    Pass Execution    ${json_data['message']}
+    ...    ELSE    Set Variable    ${json_data['success']}
+
+A-PM023-2.0查看收藏的司机
+    [Arguments]    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}    ${code}    ${errormsg}
+    [Documentation]    传入参数：
+    ...
+    ...    ${excelurl} ： Excel存放的相对路径地址
+    ...
+    ...    ${sheetname}：用例所在sheet的sheet名称
+    ...
+    ...    ${rownum}：用例所在行号（第二行开始取，取值为1）
+    ...
+    ...    ${colnum}：用例所在列号（取值断言之前的列）
+    ...
+    ...    ${code}：状态码
+    ...
+    ...    ${errormsg} : 断言error 的值
+    ${return_value}    获取乘客端的token和乘客ID
+    ${token}    Set Variable    ${return_value[0]}
+    ${member_Id}    Set Variable    ${return_value[1]}
+    ${header}    添加header
+    ${params}    获取请求参数    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}
+    ${newparams}    Set Variable    ${params}${token}&memberId=${member_Id}
+    ${response}    Post请求    ${newparams}    headers=${header}
+    结果状态码验证    ${response}    ${code}
+    ${json_data}    返回结果验证    ${response}
+    ${error_code}    Set Variable    ${json_data['error']}
+    Should Be Equal As Numbers    ${error_code}    ${errormsg}
+    ${rows}    Set Variable    ${json_data['rows']}
+    ${rows_length}    Get Length    ${rows}
+    log    ${rows_length}
+    ${collection_driver_id}    Run Keyword If    ${rows_length}==0    Pass Execution    Info:没有收藏司机
+    ...    ELSE    Set Variable    ${rows[0]['driverId']}
+    [Return]    ${collection_driver_id}
+
+A-PM024-2.0乘客解除收藏的司机
+    [Arguments]    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}    ${code}    ${errormsg}
+    ${collection_driver_id}    A-PM023-2.0查看收藏的司机    ${excelurl_mship}    listDriversByMembershipID    1    5    200
+    ...    0
+    ${return_value}    获取乘客端的token和乘客ID
+    ${token}    Set Variable    ${return_value[0]}
+    ${member_Id}    Set Variable    ${return_value[1]}
+    ${header}    添加header
+    ${params}    获取请求参数    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}
+    ${newparams}    Set Variable    ${params}${token}&driverId=${collection_driver_id}&id=${member_Id}
+    ${response}    Post请求    ${newparams}    headers=${header}
+    结果状态码验证    ${response}    ${code}
+    ${json_data}    返回结果验证    ${response}
+    ${error_code}    Set Variable    ${json_data['error']}
+    Should Be Equal As Numbers    ${error_code}    ${errormsg}
+
+A-PM025-2.0历史乘车人
+    [Arguments]    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}    ${code}    ${errormsg}
+    [Documentation]    传入参数：
+    ...
+    ...    ${excelurl} ： Excel存放的相对路径地址
+    ...
+    ...    ${sheetname}：用例所在sheet的sheet名称
+    ...
+    ...    ${rownum}：用例所在行号（第二行开始取，取值为1）
+    ...
+    ...    ${colnum}：用例所在列号（取值断言之前的列）
+    ...
+    ...    ${code}：状态码
+    ...
+    ...    ${errormsg} : 断言error 的值
+    ${return_value}    获取乘客端的token和乘客ID
+    ${token}    Set Variable    ${return_value[0]}
+    ${member_Id}    Set Variable    ${return_value[1]}
+    ${header}    添加header
+    ${params}    获取请求参数    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}
+    ${new_params}    Set Variable    ${params}${token}&memberShipId=${member_Id}
+    ${response}    Post请求    ${new_params}    headers=${header}
+    结果状态码验证    ${response}    ${code}
+    ${json_data}    返回结果验证    ${response}
+    ${error_code}    Set Variable    ${json_data['error']}
+    Should Be Equal As Numbers    ${error_code}    ${errormsg}
+
+A-PM026-2.0城市开通业务板块
+    [Arguments]    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}    ${code}    ${errormsg}
+    [Documentation]    传入参数：
+    ...
+    ...    ${excelurl} ： Excel存放的相对路径地址
+    ...
+    ...    ${sheetname}：用例所在sheet的sheet名称
+    ...
+    ...    ${rownum}：用例所在行号（第二行开始取，取值为1）
+    ...
+    ...    ${colnum}：用例所在列号（取值断言之前的列）
+    ...
+    ...    ${code}：状态码
+    ...
+    ...    ${errormsg} : 断言error 的值
+    ${return_value}    获取乘客端的token和乘客ID
+    ${token}    Set Variable    ${return_value[0]}
+    ${member_Id}    Set Variable    ${return_value[1]}
+    ${header}    添加header
+    ${params}    获取请求参数    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}
+    ${new_params}    Set Variable    ${params}${token}&memberShipId=${member_Id}
+    ${response}    Post请求    ${new_params}    headers=${header}
+    结果状态码验证    ${response}    ${code}
+    ${json_data}    返回结果验证    ${response}
+    ${error_code}    Set Variable    ${json_data['error']}
+    Comment    ${resp_data}    Set Variable    ${json_data['data']}
+    Should Be Equal As Numbers    ${error_code}    ${errormsg}
+
+A-PM027-2.0城市列表
+    [Arguments]    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}    ${code}    ${errormsg}
+    [Documentation]    传入参数：
+    ...
+    ...    ${excelurl} ： Excel存放的相对路径地址
+    ...
+    ...    ${sheetname}：用例所在sheet的sheet名称
+    ...
+    ...    ${rownum}：用例所在行号（第二行开始取，取值为1）
+    ...
+    ...    ${colnum}：用例所在列号（取值断言之前的列）
+    ...
+    ...    ${code}：状态码
+    ...
+    ...    ${errormsg} : 断言error 的值
+    ${header}    添加header
+    ${params}    获取请求参数    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}
+    ${response}    Post请求    ${params}    headers=${header}
+    结果状态码验证    ${response}    ${code}
+    ${json_data}    返回结果验证    ${response}
+    ${error_code}    Set Variable    ${json_data['error']}
+    ${resp_rows}    Set Variable    ${json_data['rows']}
+    ${resp_total}    Set Variable    ${json_data['total']}
+    ${count_rows}    Get Length    ${resp_rows}
+    Should Be Equal As Numbers    ${error_code}    ${errormsg}
+    Should Be Equal As Numbers    ${resp_total}    ${count_rows}
+
+A-PM028-2.0查询用户反馈信息列表
+    [Arguments]    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}    ${code}    ${errormsg}
+    ...    ${message_result}    ${success_result}
+    ${return_value}    获取乘客端的token和乘客ID
+    ${token}    Set Variable    ${return_value[0]}
+    ${member_Id}    Set Variable    ${return_value[1]}
+    ${header}    添加header
+    ${params}    获取请求参数    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}
+    ${new_params}    Set Variable    ${params}${token}&memberShipId=${member_Id}
+    ${response}    Post请求    ${new_params}    headers=${header}
+    结果状态码验证    ${response}    ${code}
+    ${json_data}    返回结果验证    ${response}
+    ${error_code}    Set Variable    ${json_data['error']}
+    ${resp_message}    Set Variable    ${json_data['message']}
+    ${resp_success}    Set Variable    ${json_data['success']}
+    Should Be Equal As Numbers    ${error_code}    ${errormsg}
+    Should Be Equal As Strings    ${resp_message}    ${message_result}
+    Should Be Equal As Strings    ${resp_success}    ${success_result}
+
+A-PM029-2.0航班查询
+    [Arguments]    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}    ${code}    ${errormsg}
+    ${return_value}    获取乘客端的token和乘客ID
+    ${token}    Set Variable    ${return_value[0]}
+    ${member_Id}    Set Variable    ${return_value[1]}
+    ${header}    添加header
+    ${params}    获取请求参数    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}
+    ${new_params}    Set Variable    ${params}
+    ${response}    Post请求    ${new_params}    headers=${header}
+    结果状态码验证    ${response}    ${code}
+    ${json_data}    返回结果验证    ${response}
+
+A-PM030-2.0用户反馈
+    [Arguments]    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}    ${code}    ${errormsg}
+    ...    ${message_result}    ${success_result}
+    ${return_value}    获取乘客端的token和乘客ID
+    ${token}    Set Variable    ${return_value[0]}
+    ${member_Id}    Set Variable    ${return_value[1]}
+    ${header}    添加header
+    ${params}    获取请求参数    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}
+    ${new_params}    Set Variable    ${params}${token}&memberShipId=${member_Id}
+    ${response}    Post请求    ${new_params}    headers=${header}
+    结果状态码验证    ${response}    ${code}
+    ${json_data}    返回结果验证    ${response}
+    ${error_code}    Set Variable    ${json_data['error']}
+    ${resp_success}    Set Variable    ${json_data['success']}
+    ${resp_message}    Set Variable    ${json_data['message']}
+    Should Be Equal As Numbers    ${error_code}    ${errormsg}
+    Should Be Equal As Strings    ${resp_message}    ${message_result}
+    Should Be Equal As Strings    ${resp_success}    ${success_result}
+
+A-PM031-2.0查看司机信息(待修改)
+    [Arguments]    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}    ${code}    ${errormsg}
+    ${return_value}    获取乘客端的token和乘客ID
+    ${token}    Set Variable    ${return_value[0]}
+    ${member_Id}    Set Variable    ${return_value[1]}
+    ${header}    添加header
+    ${params}    获取请求参数    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}
+    ${newparams}    Set Variable    ${params}${token}&id=${member_Id}
+    ${response}    Post请求    ${newparams}    headers=${header}
+    结果状态码验证    ${response}    ${code}
+    ${json_data}    返回结果验证    ${response}
+    ${error_code}    Set Variable    ${json_data['error']}
+    Should Be Equal As Numbers    ${error_code}    ${errormsg}
+    [Return]    ${colloctionId}
+
+A-PM032-2.0文件上传接口
+    [Arguments]    ${code}
+    [Documentation]    ('1.png', open('C:/Users/Administrator/Desktop/photos/2.png', 'rb'), 'image/png')
+    ...
+    ...    open('C:/Users/Administrator/Desktop/photos/2.png','rb')
+    ${file}    Evaluate     open('${photosUrl}','rb')
+    ${multipe_file}    Create Dictionary    file=${file}
+    Comment    ${header}    Create Dictionary    Content-Type=application/json
+    ${response}    Post Request    URL    /uploads/file    files=${multipe_file}
+    结果状态码验证    ${response}    ${code}
+    ${json_data}    返回结果验证    ${response}
+    Run Keyword If    ${json_data['error']}==0    Pass Execution    INFO: test passed
+    ...    ELSE    fail
+
+A-PM033-2.0版本介绍
+    [Arguments]    ${code}
+    [Documentation]    传入参数：
+    ...
+    ...    ${excelurl} ： Excel存放的相对路径地址
+    ...
+    ...    ${sheetname}：用例所在sheet的sheet名称
+    ...
+    ...    ${rownum}：用例所在行号（第二行开始取，取值为1）
+    ...
+    ...    ${colnum}：用例所在列号（取值断言之前的列）
+    ...
+    ...    ${code}：状态码
+    ${dict}    添加header
+    ${params}    Set Variable    /static/V2.0_introduce/index.html
+    ${response}    get请求    ${params}    ${dict}
+    结果状态码验证    ${response}    ${code}
+    Comment    log    ${response.content}
+
+A-PM034-2.0法律条款
+    [Arguments]    ${code}
+    [Documentation]    传入参数：
+    ...
+    ...    ${excelurl} ： Excel存放的相对路径地址
+    ...
+    ...    ${sheetname}：用例所在sheet的sheet名称
+    ...
+    ...    ${rownum}：用例所在行号（第二行开始取，取值为1）
+    ...
+    ...    ${colnum}：用例所在列号（取值断言之前的列）
+    ...
+    ...    ${code}：状态码
+    ${dict}    添加header
+    ${params}    Set Variable    /static/legalProvisions/index.html
+    ${response}    get请求    ${params}    ${dict}
+    结果状态码验证    ${response}    ${code}
+    Comment    log    ${response.content}
+
+A-PM035-2.0联系我们
+    [Arguments]    ${code}
+    [Documentation]    传入参数：
+    ...
+    ...    ${excelurl} ： Excel存放的相对路径地址
+    ...
+    ...    ${sheetname}：用例所在sheet的sheet名称
+    ...
+    ...    ${rownum}：用例所在行号（第二行开始取，取值为1）
+    ...
+    ...    ${colnum}：用例所在列号（取值断言之前的列）
+    ...
+    ...    ${code}：状态码
+    ${dict}    添加header
+    ${params}    Set Variable    /static/contactUs/index.html
+    ${response}    get请求    ${params}    ${dict}
+    结果状态码验证    ${response}    ${code}
+    Comment    log    ${response.content}
+
+A-PM036-2.0奖励规则
+    [Arguments]    ${code}
+    [Documentation]    传入参数：
+    ...
+    ...    ${excelurl} ： Excel存放的相对路径地址
+    ...
+    ...    ${sheetname}：用例所在sheet的sheet名称
+    ...
+    ...    ${rownum}：用例所在行号（第二行开始取，取值为1）
+    ...
+    ...    ${colnum}：用例所在列号（取值断言之前的列）
+    ...
+    ...    ${code}：状态码
+    ${dict}    添加header
+    ${params}    Set Variable    /static/bonusRule/index.html
+    ${response}    get请求    ${params}    ${dict}
+    结果状态码验证    ${response}    ${code}
+    Comment    log    ${response.content}
+
+A-PM037-2.0客服中心
+    [Arguments]    ${code}
+    [Documentation]    传入参数：
+    ...
+    ...    ${excelurl} ： Excel存放的相对路径地址
+    ...
+    ...    ${sheetname}：用例所在sheet的sheet名称
+    ...
+    ...    ${rownum}：用例所在行号（第二行开始取，取值为1）
+    ...
+    ...    ${colnum}：用例所在列号（取值断言之前的列）
+    ...
+    ...    ${code}：状态码
+    ${dict}    添加header
+    ${params}    Set Variable    /static/customService/index.html
+    ${response}    get请求    ${params}    ${dict}
+    结果状态码验证    ${response}    ${code}
+    Comment    log    ${response.content}
+
+A-PM038-乘客退出登录
+    [Arguments]    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}    ${code}
+    [Documentation]    传入参数：
+    ...
+    ...    ${excelurl} ： Excel存放的相对路径地址
+    ...
+    ...    ${sheetname}：用例所在sheet的sheet名称
+    ...
+    ...    ${rownum}：用例所在行号（第二行开始取，取值为1）
+    ...
+    ...    ${colnum}：用例所在列号（取值断言之前的列）
+    ...
+    ...    ${code}：状态码
+    ${return_value}    获取乘客端的token和乘客ID
+    ${token}    Set Variable    ${return_value[0]}
+    ${member_Id}    Set Variable    ${return_value[1]}
+    ${dict}    添加header
+    ${params}    获取请求参数    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}
+    ${newparams}    Set Variable    ${params}${token}
+    log    ${newparams}
+    ${response}    Post请求    ${newparams}    headers=${dict}
+    结果状态码验证    ${response}    ${code}
+    log    ${response.content}
+    ${data_json}    To Json    ${response.content}
+    log    ${data_json}
+    ${message}    Set Variable    ${data_json['message']}
+    ${success}    Set Variable    ${data_json['success']}
+    Should Be Equal As Strings    ${message}    成功退出登录！
+    Should Be Equal As Strings    ${success}    True
+
+A-PM039-乘客重新登录
+    [Arguments]    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}    ${code}
+    [Documentation]    传入参数：
+    ...
+    ...    ${excelurl} ： Excel存放的相对路径地址
+    ...
+    ...    ${sheetname}：用例所在sheet的sheet名称
+    ...
+    ...    ${rownum}：用例所在行号（第二行开始取，取值为1）
+    ...
+    ...    ${colnum}：用例所在列号（取值断言之前的列）
+    ...
+    ...    ${code}：状态码
+    ${dict}    添加header
+    ${params}    获取请求参数    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}
+    ${newparams}    Set Variable    ${params}
+    log    ${newparams}
+    ${response}    Post请求    ${newparams}    headers=${dict}
+    结果状态码验证    ${response}    ${code}
+    log    ${response.content}
+    ${json_data}    To Json    ${response.content}
+    log    ${json_data['token']}
+    ${token}    Set Variable    ${json_data['token']}
+    Set Global Variable    ${token}
+    ${token_length}    Get Length    ${token}
+    Should Be Equal As Integers    ${token_length}    17    [info-error]:断言失败，接口有问题！
+
+A-PM043-2.0是否可以取消绑定
+    [Arguments]    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}    ${code}    ${errormsg}
+    [Documentation]    传入参数：
+    ...
+    ...    ${excelurl} ： Excel存放的相对路径地址
+    ...
+    ...    ${sheetname}：用例所在sheet的sheet名称
+    ...
+    ...    ${rownum}：用例所在行号（第二行开始取，取值为1）
+    ...
+    ...    ${colnum}：用例所在列号（取值断言之前的列）
+    ...
+    ...    ${code}：状态码
+    ...
+    ...    ${errormsg} : 断言error 的值
+    ${return_value}    获取乘客端的token和乘客ID
+    ${membership_token}    Set Variable    ${return_value[0]}
+    ${member_Id}    Set Variable    ${return_value[1]}
+    ${dirvers}    获取司机端的token和司机ID
+    ${driver_token}    Set Variable    ${dirvers[0]}
+    ${driver_id}    Set Variable    ${dirvers[1]}
+    ${header}    添加header
+    ${params}    获取请求参数    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}
+    ${newparams}    Set Variable    ${params}${membership_token}&memberId=${member_Id}&driverId=${driver_id}
+    ${response}    Post请求    ${newparams}    headers=${header}
+    结果状态码验证    ${response}    ${code}
+    ${json_data}    返回结果验证    ${response}
+    ${error_code}    Set Variable    ${json_data['error']}
+    Should Be Equal As Numbers    ${error_code}    ${errormsg}
+    Comment    ${rows}    Set Variable    ${json_data['rows']}
+    Comment    ${rows_length}    Get Length    ${rows}
+    Comment    log    ${rows_length}
+    Comment    ${collection_driver_id}    Run Keyword If    ${rows_length}==0    Pass Execution    Info:没有收藏司机
+    ...    ELSE    Set Variable    ${rows[0]['id']}
+
+A-PM044-2.0删除历史乘车人
+    [Arguments]    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}    ${code}    ${errormsg}
+    [Documentation]    传入参数：
+    ...
+    ...    ${excelurl}：Excel存放的相对路径地址
+    ...
+    ...    ${sheetname}：用例所在sheet的sheet名称
+    ...
+    ...    ${rownum}：用例所在行号（第二行开始取，取值为1）
+    ...
+    ...    ${colnum}：用例所在列号（取值断言之前的列）
+    ...
+    ...    ${code}：状态码
+    ...
+    ...    ${errormsg} : 断言error 的值
+    ${return_value}    获取乘客端的token和乘客ID
+    ${member_Id}    Set Variable    ${return_value[1]}
+    ${token}    Set Variable    ${return_value[0]}
+    ${header}    Create Dictionary    token=${token}
+    ${params}    获取请求参数    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}
+    ${newparams}    Set Variable    ${params}${member_Id}
+    ${response}    Post请求    ${newparams}    headers=${header}
+    结果状态码验证    ${response}    ${code}
+    ${json_data}    返回结果验证    ${response}
+    ${error_code}    Set Variable    ${json_data['error']}
+    Should Be Equal As Numbers    ${error_code}    ${errormsg}
+    Comment    ${rows}    Set Variable    ${json_data['rows']}
+    Comment    ${rows_length}    Get Length    ${rows}
+    Comment    log    ${rows_length}
+    Comment    ${collection_driver_id}    Run Keyword If    ${rows_length}==0    Pass Execution    Info:没有收藏司机
+    ...    ELSE    Set Variable    ${rows[0]['id']}

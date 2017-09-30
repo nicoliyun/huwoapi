@@ -1,0 +1,12 @@
+*** Settings ***
+Suite Setup       创建session
+Suite Teardown    删除session
+Resource          elements.txt
+Resource          C-OM(订单管理接口逻辑).txt
+
+*** Test Cases ***
+OM001-司机更新经纬度坐标
+    C-OM001司机更新经纬度坐标    ${excelurl_OM}    dUpdateLocation    1    7    200    0
+
+OM002-手机APP乘客创建订单
+    C-OM002手机APP乘客创建订单    ${excelurl_OM}    createOrder    1    6    200

@@ -1,0 +1,1092 @@
+*** Settings ***
+Library           Selenium2Library
+Resource          elements.txt
+
+*** Keywords ***
+B-DM001司机获取动态验证码
+    [Arguments]    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}    ${code}
+    [Documentation]    传入参数：
+    ...
+    ...    ${excelurl} ： Excel存放的相对路径地址
+    ...
+    ...    ${sheetname}：用例所在sheet的sheet名称
+    ...
+    ...    ${rownum}：用例所在行号（第二行开始取，取值为1）
+    ...
+    ...    ${colnum}：用例所在列号（取值断言之前的列）
+    ...
+    ...    ${code}：状态码
+    ${header}    添加header
+    ${params}    获取请求参数    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}
+    ${response}    Post请求    ${params}    headers=${header}
+    ${json_data}    返回结果验证    ${response}
+
+B-DM002司机登录
+    [Arguments]    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}    ${code}
+    [Documentation]    传入参数：
+    ...
+    ...    ${excelurl} ： Excel存放的相对路径地址
+    ...
+    ...    ${sheetname}：用例所在sheet的sheet名称
+    ...
+    ...    ${rownum}：用例所在行号（第二行开始取，取值为1）
+    ...
+    ...    ${colnum}：用例所在列号（取值断言之前的列）
+    ...
+    ...    ${code}：状态码
+    ${header}    添加header
+    ${params}    获取请求参数    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}
+    ${response}    Post请求    ${params}    headers=${header}
+    ${json_data}    To Json    ${response.content}
+    log    ${json_data}
+    log    ${json_data['token']}
+    ${driver_token}    Set Variable    ${json_data['token']}
+    ${driver_id}    Set Variable    ${json_data['data']['id']}
+    Set Global Variable    ${driver_id}
+    Set Global Variable    ${driver_token}
+    结果状态码验证    ${response}    ${code}
+    ${token_length}    Get Length    ${driver_token}
+    Should Be Equal As Integers    ${token_length}    17
+
+B-DM003司机出车
+    [Arguments]    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}    ${code}    ${errormsg}
+    [Documentation]    传入参数：
+    ...
+    ...    ${excelurl} ： Excel存放的相对路径地址
+    ...
+    ...    ${sheetname}：用例所在sheet的sheet名称
+    ...
+    ...    ${rownum}：用例所在行号（第二行开始取，取值为1）
+    ...
+    ...    ${colnum}：用例所在列号（取值断言之前的列）
+    ...
+    ...    ${code}：状态码
+    ${driver_result}    获取司机端的token和司机ID
+    ${token}    Set Variable    ${driver_result[0]}
+    ${driver_id}    Set Variable    ${driver_result[1]}
+    ${header}    添加header
+    ${params}    获取请求参数    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}
+    ${new_params}    Set Variable    ${params}${token}&id=${driver_id}
+    ${response}    Post请求    ${new_params}    headers=${header}
+    结果状态码验证    ${response}    ${code}
+    ${json_data}    返回结果验证    ${response}
+    ${error_code}    Set Variable    ${json_data['error']}
+    Run Keyword If    ${error_code}==1    Pass Execution    info:该司机已经出车！！谢谢
+    ...    ELSE    Should Be Equal As Numbers    ${error_code}    ${errormsg}
+
+B-DM004获取司机账户信息
+    [Arguments]    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}    ${code}
+    [Documentation]    传入参数：
+    ...
+    ...    ${excelurl} ： Excel存放的相对路径地址
+    ...
+    ...    ${sheetname}：用例所在sheet的sheet名称
+    ...
+    ...    ${rownum}：用例所在行号（第二行开始取，取值为1）
+    ...
+    ...    ${colnum}：用例所在列号（取值断言之前的列）
+    ...
+    ...    ${code}：状态码
+    ${driver_result}    获取司机端的token和司机ID
+    ${token}    Set Variable    ${driver_result[0]}
+    ${driver_id}    Set Variable    ${driver_result[1]}
+    ${header}    添加header
+    ${params}    获取请求参数    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}
+    ${news_params}    Set Variable    ${params}${token}&driverId=${driver_id}
+    ${response}    Post请求    ${news_params}    headers=${header}
+    结果状态码验证    ${response}    ${code}
+    ${json_data}    返回结果验证    ${response}
+    ${resp_data}    Set Variable    ${json_data['data']}
+    log    ${resp_data}
+    ${data_length}    Get Length    ${resp_data}
+    Run Keyword If    ${data_length}!=0    Pass Execution    Info:成功获取到司机账户信息${resp_data}
+
+B-DM007司机信息完善
+    [Arguments]    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}    ${code}    ${errormsg}
+    [Documentation]    传入参数：
+    ...
+    ...    ${excelurl} ： Excel存放的相对路径地址
+    ...
+    ...    ${sheetname}：用例所在sheet的sheet名称
+    ...
+    ...    ${rownum}：用例所在行号（第二行开始取，取值为1）
+    ...
+    ...    ${colnum}：用例所在列号（取值断言之前的列）
+    ...
+    ...    ${code}：状态码
+    ${driver_result}    获取司机端的token和司机ID
+    ${token}    Set Variable    ${driver_result[0]}
+    ${driver_id}    Set Variable    ${driver_result[1]}
+    ${header}    添加header
+    ${params}    获取请求参数    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}
+    ${news_params}    Set Variable    ${params}${token}&driverId=${driver_id}
+    ${response}    Post请求    ${news_params}    headers=${header}
+    结果状态码验证    ${response}    ${code}
+    ${json_data}    返回结果验证    ${response}
+    ${error_code}    Set Variable    ${json_data['error']}
+    ${resp_message}    Set Variable    ${json_data['message']}
+    Run Keyword If    ${error_code}==1    Pass Execution    ${resp_message}
+    ...    ELSE    Should Be Equal As Numbers    ${error_code}    ${errormsg}
+
+B-DM012司机更新经纬度坐标
+    [Arguments]    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}    ${code}    ${errormsg}
+    ...    ${success_result}
+    [Documentation]    传入参数：
+    ...
+    ...    ${excelurl} ： Excel存放的相对路径地址
+    ...
+    ...    ${sheetname}：用例所在sheet的sheet名称
+    ...
+    ...    ${rownum}：用例所在行号（第二行开始取，取值为1）
+    ...
+    ...    ${colnum}：用例所在列号（取值断言之前的列）
+    ...
+    ...    ${code}：状态码
+    ${driver_result}    获取司机端的token和司机ID
+    ${token}    Set Variable    ${driver_result[0]}
+    ${driver_id}    Set Variable    ${driver_result[1]}
+    ${header}    添加header
+    ${params}    获取请求参数    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}
+    ${news_params}    Set Variable    ${params}${token}&driverId=${driver_id}
+    ${response}    Post请求    ${news_params}    headers=${header}
+    结果状态码验证    ${response}    ${code}
+    ${json_data}    返回结果验证    ${response}
+    ${error_code}    Set Variable    ${json_data['error']}
+    ${resp_success}    Set Variable    ${json_data['success']}
+    Should Be Equal As Numbers    ${error_code}    ${errormsg}
+    Should Be Equal As Strings    ${resp_success}    ${success_result}
+
+B-DM0015司机收车
+    [Arguments]    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}    ${code}    ${errormsg}
+    ...    ${success_result}
+    [Documentation]    传入参数：
+    ...
+    ...    ${excelurl} ： Excel存放的相对路径地址
+    ...
+    ...    ${sheetname}：用例所在sheet的sheet名称
+    ...
+    ...    ${rownum}：用例所在行号（第二行开始取，取值为1）
+    ...
+    ...    ${colnum}：用例所在列号（取值断言之前的列）
+    ...
+    ...    ${code}：状态码
+    ...
+    ...
+    ...    备注： 该接口调用之后，已收车，但是再次调用的时候仍然显示收车成功。 不符合逻辑。
+    ${driver_result}    获取司机端的token和司机ID
+    ${token}    Set Variable    ${driver_result[0]}
+    ${driver_id}    Set Variable    ${driver_result[1]}
+    ${header}    添加header
+    ${params}    获取请求参数    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}
+    ${new_params}    Set Variable    ${params}${token}&id=${driver_id}
+    ${response}    Post请求    ${new_params}    headers=${header}
+    结果状态码验证    ${response}    ${code}
+    ${json_data}    返回结果验证    ${response}
+    log    ${json_data}
+    ${error_code}    Set Variable    ${json_data['error']}
+    ${resp_success}    Set Variable    ${json_data['success']}
+    Should Be Equal As Numbers    ${error_code}    ${errormsg}
+    Should Be Equal As Strings    ${resp_success}    ${success_result}
+
+B-DM009获取司机详情
+    [Arguments]    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}    ${code}
+    [Documentation]    传入参数：
+    ...
+    ...    ${excelurl} ： Excel存放的相对路径地址
+    ...
+    ...    ${sheetname}：用例所在sheet的sheet名称
+    ...
+    ...    ${rownum}：用例所在行号（第二行开始取，取值为1）
+    ...
+    ...    ${colnum}：用例所在列号（取值断言之前的列）
+    ...
+    ...    ${code}：状态码
+    ${driver_result}    获取司机端的token和司机ID
+    ${token}    Set Variable    ${driver_result[0]}
+    ${driver_id}    Set Variable    ${driver_result[1]}
+    ${header}    添加header
+    ${params}    获取请求参数    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}
+    ${new_params}    Set Variable    ${params}${token}&id=${driver_id}
+    ${response}    Post请求    ${new_params}    headers=${header}
+    结果状态码验证    ${response}    ${code}
+    ${json_data}    返回结果验证    ${response}
+    ${error}    Set Variable    ${json_data['error']}
+    ${driver_data}    Set Variable    ${json_data['data']}
+    ${driver_data_length}    Get Length    ${driver_data}
+    Run Keyword If    ${driver_data_length}!=0    Pass Execution    Info:成功获取到司机详情${driver_data}
+    ...    ELSE    log    Info:没有获取到时间信息！
+
+B-DM005司机退出登录
+    [Arguments]    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}    ${code}    ${errormsg}
+    ...    ${success_result}    ${message_result}
+    [Documentation]    传入参数：
+    ...
+    ...    ${excelurl} ： Excel存放的相对路径地址
+    ...
+    ...    ${sheetname}：用例所在sheet的sheet名称
+    ...
+    ...    ${rownum}：用例所在行号（第二行开始取，取值为1）
+    ...
+    ...    ${colnum}：用例所在列号（取值断言之前的列）
+    ...
+    ...    ${code}：状态码
+    ${driver_result}    获取司机端的token和司机ID
+    ${token}    Set Variable    ${driver_result[0]}
+    ${driver_id}    Set Variable    ${driver_result[1]}
+    ${header}    添加header
+    ${params}    获取请求参数    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}
+    ${new_params}    Set Variable    ${params}${token}
+    ${response}    Post请求    ${new_params}    headers=${header}
+    结果状态码验证    ${response}    ${code}
+    ${json_data}    返回结果验证    ${response}
+    ${error_code}    Set Variable    ${json_data['error']}
+    ${resp_success}    Set Variable    ${json_data['success']}
+    ${resp_message}    Set Variable    ${json_data['message']}
+    Should Be Equal As Numbers    ${error_code}    ${errormsg}
+    Should Be Equal As Strings    ${resp_success}    ${success_result}
+    Should Be Equal As Strings    ${resp_message}    ${message_result}
+
+B-DM008司机重新登录
+    [Arguments]    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}    ${code}    ${errormsg}
+    [Documentation]    传入参数：
+    ...
+    ...    ${excelurl} ： Excel存放的相对路径地址
+    ...
+    ...    ${sheetname}：用例所在sheet的sheet名称
+    ...
+    ...    ${rownum}：用例所在行号（第二行开始取，取值为1）
+    ...
+    ...    ${colnum}：用例所在列号（取值断言之前的列）
+    ...
+    ...    ${code}：状态码
+    ${header}    添加header
+    ${params}    获取请求参数    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}
+    ${response}    Post请求    ${params}    headers=${header}
+    结果状态码验证    ${response}    ${code}
+    ${json_data}    返回结果验证    ${response}
+    ${error_code}    Set Variable    ${json_data['error']}
+    Run Keyword If    ${error_code}==1    Pass Execution    Info:对不起，登录失败。验证码或者手机号错误！
+    ...    ELSE    Should Be Equal As Numbers    ${error_code}    ${errormsg}
+
+B-DM010获取推送订单司机详情
+    [Arguments]    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}    ${code}
+    [Documentation]    传入参数：
+    ...
+    ...    ${excelurl} ： Excel存放的相对路径地址
+    ...
+    ...    ${sheetname}：用例所在sheet的sheet名称
+    ...
+    ...    ${rownum}：用例所在行号（第二行开始取，取值为1）
+    ...
+    ...    ${colnum}：用例所在列号（取值断言之前的列）
+    ...
+    ...    ${code}：状态码
+    ${driver_result}    获取司机端的token和司机ID
+    ${token}    Set Variable    ${driver_result[0]}
+    ${driver_id}    Set Variable    ${driver_result[1]}
+    ${header}    添加header
+    ${params}    获取请求参数    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}
+    ${news_params}    Set Variable    ${params}${token}&id=${driver_id}
+    ${response}    Post请求    ${news_params}    headers=${header}
+    结果状态码验证    ${response}    ${code}
+    ${json_data}    返回结果验证    ${response}
+
+B-DM011获取司机在具体某范围基于当前用户坐标
+    [Arguments]    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}    ${code}
+    [Documentation]    传入参数：
+    ...
+    ...    ${excelurl} ： Excel存放的相对路径地址
+    ...
+    ...    ${sheetname}：用例所在sheet的sheet名称
+    ...
+    ...    ${rownum}：用例所在行号（第二行开始取，取值为1）
+    ...
+    ...    ${colnum}：用例所在列号（取值断言之前的列）
+    ...
+    ...    ${code}：状态码
+    ${driver_result}    获取司机端的token和司机ID
+    ${token}    Set Variable    ${driver_result[0]}
+    ${driver_id}    Set Variable    ${driver_result[1]}
+    ${header}    添加header
+    ${params}    获取请求参数    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}
+    ${news_params}    Set Variable    ${params}${token}&id=${driver_id}
+    ${response}    Post请求    ${news_params}    headers=${header}
+    结果状态码验证    ${response}    ${code}
+
+B-DM013获取司机评论列表
+    [Arguments]    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}    ${code}    ${errormsg}
+    [Documentation]    传入参数：
+    ...
+    ...    ${excelurl} ： Excel存放的相对路径地址
+    ...
+    ...    ${sheetname}：用例所在sheet的sheet名称
+    ...
+    ...    ${rownum}：用例所在行号（第二行开始取，取值为1）
+    ...
+    ...    ${colnum}：用例所在列号（取值断言之前的列）
+    ...
+    ...    ${code}：状态码
+    ${driver_result}    获取司机端的token和司机ID
+    ${token}    Set Variable    ${driver_result[0]}
+    ${driver_id}    Set Variable    ${driver_result[1]}
+    ${header}    添加header
+    ${params}    获取请求参数    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}
+    ${news_params}    Set Variable    ${params}${token}&driverId=${driver_id}
+    ${response}    Post请求    ${news_params}    headers=${header}
+    结果状态码验证    ${response}    ${code}
+    ${json_data}    返回结果验证    ${response}
+    ${error_code}    Set Variable    ${json_data['error']}
+    ${resp_total}    Set Variable    ${json_data['total']}
+    ${resp_rows}    Set Variable    ${json_data['rows']}
+    ${count_rows}    Get Length    ${resp_rows}
+    Should Be Equal As Numbers    ${error_code}    ${errormsg}
+    Should Be Equal As Integers    ${resp_total}    ${count_rows}
+
+B-DM014司机查看推荐的乘客
+    [Arguments]    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}    ${code}
+    [Documentation]    传入参数：
+    ...
+    ...    ${excelurl} ： Excel存放的相对路径地址
+    ...
+    ...    ${sheetname}：用例所在sheet的sheet名称
+    ...
+    ...    ${rownum}：用例所在行号（第二行开始取，取值为1）
+    ...
+    ...    ${colnum}：用例所在列号（取值断言之前的列）
+    ...
+    ...    ${code}：状态码
+    ${driver_result}    获取司机端的token和司机ID
+    ${token}    Set Variable    ${driver_result[0]}
+    ${driver_id}    Set Variable    ${driver_result[1]}
+    ${header}    添加header
+    ${params}    获取请求参数    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}
+    ${news_params}    Set Variable    ${params}${token}
+    ${response}    Post请求    ${news_params}    headers=${header}
+    ${json_data}    To Json    ${response.content}
+    log    ${json_data}
+    结果状态码验证    ${response}    ${code}
+
+B-DM006司机注册
+    [Arguments]    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}    ${code}
+    [Documentation]    传入参数：
+    ...
+    ...    ${excelurl} ： Excel存放的相对路径地址
+    ...
+    ...    ${sheetname}：用例所在sheet的sheet名称
+    ...
+    ...    ${rownum}：用例所在行号（第二行开始取，取值为1）
+    ...
+    ...    ${colnum}：用例所在列号（取值断言之前的列）
+    ...
+    ...    ${code}：状态码
+    ${header}    添加header
+    ${params}    获取请求参数    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}
+    ${response}    Post请求    ${params}    headers=${header}
+    ${json_data}    To Json    ${response.content}
+    log    ${json_data}
+    结果状态码验证    ${response}    ${code}
+
+B-DM016司机登陆首页信息展示
+    [Arguments]    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}    ${code}
+    [Documentation]    传入参数：
+    ...
+    ...    ${excelurl} ： Excel存放的相对路径地址
+    ...
+    ...    ${sheetname}：用例所在sheet的sheet名称
+    ...
+    ...    ${rownum}：用例所在行号（第二行开始取，取值为1）
+    ...
+    ...    ${colnum}：用例所在列号（取值断言之前的列）
+    ...
+    ...    ${code}：状态码
+    ${driver_result}    获取司机端的token和司机ID
+    ${token}    Set Variable    ${driver_result[0]}
+    ${driver_id}    Set Variable    ${driver_result[1]}
+    ${header}    添加header
+    ${params}    获取请求参数    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}
+    ${newparams}    Set Variable    ${params}${token}&id=${driver_id}
+    ${response}    Post请求    ${newparams}    headers=${header}
+    ${json_data}    返回结果验证    ${response}
+    结果状态码验证    ${response}    ${code}
+    ${error_code}    Set Variable    ${json_data['error']}
+    Should Be Equal As Integers    ${error_code}    0
+
+B-DM017-2.0版本司机注册
+    [Arguments]    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}    ${code}
+    [Documentation]    传入参数：
+    ...
+    ...    ${excelurl} ： Excel存放的相对路径地址
+    ...
+    ...    ${sheetname}：用例所在sheet的sheet名称
+    ...
+    ...    ${rownum}：用例所在行号（第二行开始取，取值为1）
+    ...
+    ...    ${colnum}：用例所在列号（取值断言之前的列）
+    ...
+    ...    ${code}：状态码
+    ${header}    添加header
+    ${params}    获取请求参数    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}
+    ${response}    Post请求    ${params}    headers=${header}
+    ${json_data}    To Json    ${response.content}
+    log    ${json_data}
+    结果状态码验证    ${response}    ${code}
+
+B-DM018-2.0版本忘记密码
+    [Arguments]    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}    ${code}
+    [Documentation]    传入参数：
+    ...
+    ...    ${excelurl} ： Excel存放的相对路径地址
+    ...
+    ...    ${sheetname}：用例所在sheet的sheet名称
+    ...
+    ...    ${rownum}：用例所在行号（第二行开始取，取值为1）
+    ...
+    ...    ${colnum}：用例所在列号（取值断言之前的列）
+    ...
+    ...    ${code}：状态码
+    ${driver_result}    获取司机端的token和司机ID
+    ${header}    添加header
+    ${params}    获取请求参数    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}
+    ${response}    Post请求    ${params}    headers=${header}
+    ${json_data}    返回结果验证    ${response}
+    结果状态码验证    ${response}    ${code}
+    ${error_code}    Set Variable    ${json_data['error']}
+    Should Be Equal As Integers    ${error_code}    0
+
+B-DM019-2.0司机登录
+    [Arguments]    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}    ${code}
+    [Documentation]    传入参数：
+    ...
+    ...    ${excelurl} ： Excel存放的相对路径地址
+    ...
+    ...    ${sheetname}：用例所在sheet的sheet名称
+    ...
+    ...    ${rownum}：用例所在行号（第二行开始取，取值为1）
+    ...
+    ...    ${colnum}：用例所在列号（取值断言之前的列）
+    ...
+    ...    ${code}：状态码
+    ${driver_result}    获取司机端的token和司机ID
+    ${header}    添加header
+    ${params}    获取请求参数    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}
+    ${response}    Post请求    ${params}    headers=${header}
+    ${json_data}    返回结果验证    ${response}
+    结果状态码验证    ${response}    ${code}
+    ${error_code}    Set Variable    ${json_data['error']}
+    Should Be Equal As Integers    ${error_code}    0
+    ${token_length}    Get Length    ${json_data['token']}
+    Run Keyword If    ${token_length}!=0    Pass Execution    info:test pass
+
+B-DM020-2.0版本司机反馈
+    [Arguments]    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}    ${code}
+    [Documentation]    传入参数：
+    ...
+    ...    ${excelurl} ： Excel存放的相对路径地址
+    ...
+    ...    ${sheetname}：用例所在sheet的sheet名称
+    ...
+    ...    ${rownum}：用例所在行号（第二行开始取，取值为1）
+    ...
+    ...    ${colnum}：用例所在列号（取值断言之前的列）
+    ...
+    ...    ${code}：状态码
+    ${driver_result}    获取司机端的token和司机ID
+    ${token}    Set Variable    ${driver_result[0]}
+    ${driver_id}    Set Variable    ${driver_result[1]}
+    ${header}    添加header
+    ${params}    获取请求参数    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}
+    ${newparams}    Set Variable    ${params}${token}&id=${driver_id}
+    ${response}    Post请求    ${newparams}    headers=${header}
+    ${json_data}    返回结果验证    ${response}
+    结果状态码验证    ${response}    ${code}
+    ${error_code}    Set Variable    ${json_data['error']}
+    Should Be Equal As Integers    ${error_code}    0
+
+B-DM021-2.0重置司机提现密码
+    [Arguments]    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}    ${code}
+    [Documentation]    传入参数：
+    ...
+    ...    ${excelurl} ： Excel存放的相对路径地址
+    ...
+    ...    ${sheetname}：用例所在sheet的sheet名称
+    ...
+    ...    ${rownum}：用例所在行号（第二行开始取，取值为1）
+    ...
+    ...    ${colnum}：用例所在列号（取值断言之前的列）
+    ...
+    ...    ${code}：状态码
+    ${driver_result}    获取司机端的token和司机ID
+    ${token}    Set Variable    ${driver_result[0]}
+    ${driver_id}    Set Variable    ${driver_result[1]}
+    ${header}    添加header
+    ${params}    获取请求参数    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}
+    ${newparams}    Set Variable    ${params}${token}
+    ${response}    Post请求    ${newparams}    headers=${header}
+    ${json_data}    返回结果验证    ${response}
+    结果状态码验证    ${response}    ${code}
+    ${error_code}    Set Variable    ${json_data['error']}
+    Should Be Equal As Integers    ${error_code}    0
+
+B-DM022-2.0行程列表
+    [Arguments]    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}    ${code}
+    [Documentation]    传入参数：
+    ...
+    ...    ${excelurl} ： Excel存放的相对路径地址
+    ...
+    ...    ${sheetname}：用例所在sheet的sheet名称
+    ...
+    ...    ${rownum}：用例所在行号（第二行开始取，取值为1）
+    ...
+    ...    ${colnum}：用例所在列号（取值断言之前的列）
+    ...
+    ...    ${code}：状态码
+    ${driver_result}    获取司机端的token和司机ID
+    ${token}    Set Variable    ${driver_result[0]}
+    ${driver_id}    Set Variable    ${driver_result[1]}
+    ${header}    Create Dictionary    token=${token}
+    ${params}    获取请求参数    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}
+    ${newparams}    Set Variable    ${params}${driver_id}
+    ${response}    Post请求    ${newparams}    headers=${header}
+    ${json_data}    返回结果验证    ${response}
+    结果状态码验证    ${response}    ${code}
+    ${error_code}    Set Variable    ${json_data['error']}
+    Should Be Equal As Integers    ${error_code}    0
+
+B-DM023-2.0获取司机指定周出车明细(默认最近一周)
+    [Arguments]    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}    ${code}
+    [Documentation]    传入参数：
+    ...
+    ...    ${excelurl} ： Excel存放的相对路径地址
+    ...
+    ...    ${sheetname}：用例所在sheet的sheet名称
+    ...
+    ...    ${rownum}：用例所在行号（第二行开始取，取值为1）
+    ...
+    ...    ${colnum}：用例所在列号（取值断言之前的列）
+    ...
+    ...    ${code}：状态码
+    ${driver_result}    获取司机端的token和司机ID
+    ${token}    Set Variable    ${driver_result[0]}
+    ${driver_id}    Set Variable    ${driver_result[1]}
+    ${header}    Create Dictionary    token=${token}
+    ${params}    获取请求参数    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}
+    ${newparams}    Set Variable    ${params}${driver_id}
+    ${response}    Post请求    ${newparams}    headers=${header}
+    ${json_data}    返回结果验证    ${response}
+    结果状态码验证    ${response}    ${code}
+    ${error_code}    Set Variable    ${json_data['error']}
+    Should Be Equal As Integers    ${error_code}    0
+
+B-DM024-2.0获取指定周司机在线总时长(默认获取最近一周)
+    [Arguments]    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}    ${code}
+    [Documentation]    传入参数：
+    ...
+    ...    ${excelurl} ： Excel存放的相对路径地址
+    ...
+    ...    ${sheetname}：用例所在sheet的sheet名称
+    ...
+    ...    ${rownum}：用例所在行号（第二行开始取，取值为1）
+    ...
+    ...    ${colnum}：用例所在列号（取值断言之前的列）
+    ...
+    ...    ${code}：状态码
+    ${driver_result}    获取司机端的token和司机ID
+    ${token}    Set Variable    ${driver_result[0]}
+    ${driver_id}    Set Variable    ${driver_result[1]}
+    ${header}    Create Dictionary    token=${token}
+    ${params}    获取请求参数    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}
+    ${newparams}    Set Variable    ${params}${driver_id}
+    ${response}    Post请求    ${newparams}    headers=${header}
+    ${json_data}    返回结果验证    ${response}
+    结果状态码验证    ${response}    ${code}
+    ${error_code}    Set Variable    ${json_data['error']}
+    Should Be Equal As Integers    ${error_code}    0
+
+B-DM025-2.0司机修改密码
+    [Arguments]    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}    ${code}
+    [Documentation]    传入参数：
+    ...
+    ...    ${excelurl} ： Excel存放的相对路径地址
+    ...
+    ...    ${sheetname}：用例所在sheet的sheet名称
+    ...
+    ...    ${rownum}：用例所在行号（第二行开始取，取值为1）
+    ...
+    ...    ${colnum}：用例所在列号（取值断言之前的列）
+    ...
+    ...    ${code}：状态码
+    ${driver_result}    获取司机端的token和司机ID
+    ${token}    Set Variable    ${driver_result[0]}
+    ${driver_id}    Set Variable    ${driver_result[1]}
+    ${header}    添加header
+    ${params}    获取请求参数    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}
+    ${newparams}    Set Variable    ${params}${token}&id=${driver_id}
+    ${response}    Post请求    ${newparams}    headers=${header}
+    ${json_data}    返回结果验证    ${response}
+    结果状态码验证    ${response}    ${code}
+    ${error_code}    Set Variable    ${json_data['error']}
+    Should Be Equal As Integers    ${error_code}    0
+
+B-DM026-2.0版本出租车司机到达乘客终点
+    [Arguments]    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}    ${code}
+    [Documentation]    传入参数：
+    ...
+    ...    ${excelurl} ： Excel存放的相对路径地址
+    ...
+    ...    ${sheetname}：用例所在sheet的sheet名称
+    ...
+    ...    ${rownum}：用例所在行号（第二行开始取，取值为1）
+    ...
+    ...    ${colnum}：用例所在列号（取值断言之前的列）
+    ...
+    ...    ${code}：状态码
+    ${driver_result}    获取司机端的token和司机ID
+    ${member_result}    获取乘客端的token和乘客ID
+    ${token}    Set Variable    ${driver_result[0]}
+    ${driver_id}    Set Variable    ${driver_result[1]}
+    ${memberid}    Set Variable    ${member_result[1]}
+    ${select_order_ID}    Set Variable    SELECT ID FROM biz_order WHERE MemberShipID=${memberid} and State=2 ORDER BY CreateDate DESC;
+    连接数据库    pymysql    database='callme',user='cqhwcx_8888',password='cqhwcx_8888',host='rm-wz919cz55o24u21a7o.mysql.rds.aliyuncs.com',port=3306,charset='utf8'
+    ${table_order_Id}    查询数据库    ${select_order_ID}
+    ${order_Id}    Set Variable    ${table_order_Id[0][0]}
+    断开数据库
+    ${header}    Create Dictionary    token=${token}
+    ${params}    获取请求参数    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}
+    ${newparams}    Set Variable    ${params}${order_Id}
+    ${response}    Post请求    ${newparams}    headers=${header}
+    ${json_data}    返回结果验证    ${response}
+    结果状态码验证    ${response}    ${code}
+    ${error_code}    Set Variable    ${json_data['error']}
+    Should Be Equal As Integers    ${error_code}    0
+
+B-DM027-2.0版本司机向平台发起订单垫付
+    [Arguments]    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}    ${code}
+    [Documentation]    传入参数：
+    ...
+    ...    ${excelurl} ： Excel存放的相对路径地址
+    ...
+    ...    ${sheetname}：用例所在sheet的sheet名称
+    ...
+    ...    ${rownum}：用例所在行号（第二行开始取，取值为1）
+    ...
+    ...    ${colnum}：用例所在列号（取值断言之前的列）
+    ...
+    ...    ${code}：状态码
+    ${driver_result}    获取司机端的token和司机ID
+    ${member_result}    获取乘客端的token和乘客ID
+    ${token}    Set Variable    ${driver_result[0]}
+    ${driver_id}    Set Variable    ${driver_result[1]}
+    ${memberid}    Set Variable    ${member_result[1]}
+    ${select_order_ID}    Set Variable    SELECT ID FROM biz_order WHERE MemberShipID=${memberid} and State=3 ORDER BY CreateDate DESC;
+    连接数据库    pymysql    database='callme',user='cqhwcx_8888',password='cqhwcx_8888',host='rm-wz919cz55o24u21a7o.mysql.rds.aliyuncs.com',port=3306,charset='utf8'
+    ${table_order_Id}    查询数据库    ${select_order_ID}
+    ${order_Id}    Set Variable    ${table_order_Id[0][0]}
+    断开数据库
+    ${header}    Create Dictionary    token=${token}
+    ${params}    获取请求参数    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}
+    ${newparams}    Set Variable    ${params}${order_Id}
+    ${response}    Post请求    ${newparams}    headers=${header}
+    ${json_data}    返回结果验证    ${response}
+    结果状态码验证    ${response}    ${code}
+    ${error_code}    Set Variable    ${json_data['error']}
+    Should Be Equal As Integers    ${error_code}    0
+
+B-DM028-2.0版本司机向平台发起申诉
+    [Arguments]    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}    ${code}
+    [Documentation]    传入参数：
+    ...
+    ...    ${excelurl} ： Excel存放的相对路径地址
+    ...
+    ...    ${sheetname}：用例所在sheet的sheet名称
+    ...
+    ...    ${rownum}：用例所在行号（第二行开始取，取值为1）
+    ...
+    ...    ${colnum}：用例所在列号（取值断言之前的列）
+    ...
+    ...    ${code}：状态码
+    ${driver_result}    获取司机端的token和司机ID
+    ${member_result}    获取乘客端的token和乘客ID
+    ${token}    Set Variable    ${driver_result[0]}
+    ${driver_id}    Set Variable    ${driver_result[1]}
+    ${memberid}    Set Variable    ${member_result[1]}
+    ${select_order_ID}    Set Variable    SELECT ID FROM biz_order WHERE MemberShipID=${memberid} and State=3 ORDER BY CreateDate DESC;
+    连接数据库    pymysql    database='callme',user='cqhwcx_8888',password='cqhwcx_8888',host='rm-wz919cz55o24u21a7o.mysql.rds.aliyuncs.com',port=3306,charset='utf8'
+    ${table_order_Id}    查询数据库    ${select_order_ID}
+    ${order_Id}    Set Variable    ${table_order_Id[0][0]}
+    断开数据库
+    ${header}    Create Dictionary    token=${token}
+    ${params}    获取请求参数    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}
+    ${newparams}    Set Variable    ${params}${order_Id}
+    ${response}    Post请求    ${newparams}    headers=${header}
+    ${json_data}    返回结果验证    ${response}
+    结果状态码验证    ${response}    ${code}
+    ${error_code}    Set Variable    ${json_data['error']}
+    Should Be Equal As Integers    ${error_code}    0
+
+B-DM029-2.0版本司机向乘客发起催款
+    [Arguments]    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}    ${code}
+    [Documentation]    传入参数：
+    ...
+    ...    ${excelurl} ： Excel存放的相对路径地址
+    ...
+    ...    ${sheetname}：用例所在sheet的sheet名称
+    ...
+    ...    ${rownum}：用例所在行号（第二行开始取，取值为1）
+    ...
+    ...    ${colnum}：用例所在列号（取值断言之前的列）
+    ...
+    ...    ${code}：状态码
+    ${driver_result}    获取司机端的token和司机ID
+    ${member_result}    获取乘客端的token和乘客ID
+    ${token}    Set Variable    ${driver_result[0]}
+    ${driver_id}    Set Variable    ${driver_result[1]}
+    ${memberid}    Set Variable    ${member_result[1]}
+    ${select_order_ID}    Set Variable    SELECT ID FROM biz_order WHERE MemberShipID=${memberid} and State=3 ORDER BY CreateDate DESC;
+    连接数据库    pymysql    database='callme',user='cqhwcx_8888',password='cqhwcx_8888',host='rm-wz919cz55o24u21a7o.mysql.rds.aliyuncs.com',port=3306,charset='utf8'
+    ${table_order_Id}    查询数据库    ${select_order_ID}
+    ${order_Id}    Set Variable    ${table_order_Id[0][0]}
+    断开数据库
+    ${header}    Create Dictionary    token=${token}
+    ${params}    获取请求参数    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}
+    ${newparams}    Set Variable    ${params}${order_Id}
+    ${response}    Post请求    ${newparams}    headers=${header}
+    ${json_data}    返回结果验证    ${response}
+    结果状态码验证    ${response}    ${code}
+    ${error_code}    Set Variable    ${json_data['error']}
+    Should Be Equal As Integers    ${error_code}    0
+
+B-DM030-2.0版本我的升级状态
+    [Arguments]    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}    ${code}
+    [Documentation]    传入参数：
+    ...
+    ...    ${excelurl} ： Excel存放的相对路径地址
+    ...
+    ...    ${sheetname}：用例所在sheet的sheet名称
+    ...
+    ...    ${rownum}：用例所在行号（第二行开始取，取值为1）
+    ...
+    ...    ${colnum}：用例所在列号（取值断言之前的列）
+    ...
+    ...    ${code}：状态码
+    ${driver_result}    获取司机端的token和司机ID
+    ${token}    Set Variable    ${driver_result[0]}
+    ${driver_id}    Set Variable    ${driver_result[1]}
+    ${header}    添加header
+    ${params}    获取请求参数    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}
+    ${newparams}    Set Variable    ${params}${token}&driverId=${driver_id}
+    ${response}    Post请求    ${newparams}    headers=${header}
+    ${json_data}    返回结果验证    ${response}
+    结果状态码验证    ${response}    ${code}
+    ${error_code}    Set Variable    ${json_data['error']}
+    Should Be Equal As Integers    ${error_code}    0
+
+B-DM031-2.0版本司机认证模块基本信息提交
+    [Arguments]    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}    ${code}
+    [Documentation]    传入参数：
+    ...
+    ...    ${excelurl} ： Excel存放的相对路径地址
+    ...
+    ...    ${sheetname}：用例所在sheet的sheet名称
+    ...
+    ...    ${rownum}：用例所在行号（第二行开始取，取值为1）
+    ...
+    ...    ${colnum}：用例所在列号（取值断言之前的列）
+    ...
+    ...    ${code}：状态码
+    ${driver_result}    获取司机端的token和司机ID
+    ${token}    Set Variable    ${driver_result[0]}
+    ${driver_id}    Set Variable    ${driver_result[1]}
+    ${header}    添加header
+    ${params}    获取请求参数    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}
+    ${newparams}    Set Variable    ${params}
+    ${response}    Post请求    ${newparams}    headers=${header}
+    ${json_data}    返回结果验证    ${response}
+    结果状态码验证    ${response}    ${code}
+    Comment    ${error_code}    Set Variable    ${json_data['error']}
+    Comment    Should Be Equal As Integers    ${error_code}    0
+
+B-DM032-2.0版本我的升级进入下一步
+    [Arguments]    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}    ${code}
+    [Documentation]    传入参数：
+    ...
+    ...    ${excelurl} ： Excel存放的相对路径地址
+    ...
+    ...    ${sheetname}：用例所在sheet的sheet名称
+    ...
+    ...    ${rownum}：用例所在行号（第二行开始取，取值为1）
+    ...
+    ...    ${colnum}：用例所在列号（取值断言之前的列）
+    ...
+    ...    ${code}：状态码
+    ${driver_result}    获取司机端的token和司机ID
+    ${token}    Set Variable    ${driver_result[0]}
+    ${driver_id}    Set Variable    ${driver_result[1]}
+    ${header}    添加header
+    ${params}    获取请求参数    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}
+    Comment    id 为：我的升级记录ID
+    ${newparams}    Set Variable    ${params}${token}&id=
+    ${response}    Post请求    ${newparams}    headers=${header}
+    ${json_data}    返回结果验证    ${response}
+    结果状态码验证    ${response}    ${code}
+    Comment    ${error_code}    Set Variable    ${json_data['error']}
+    Comment    Should Be Equal As Integers    ${error_code}    0
+
+B-DM033-2.0版本可提现余额查询
+    [Arguments]    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}    ${code}
+    [Documentation]    传入参数：
+    ...
+    ...    ${excelurl} ： Excel存放的相对路径地址
+    ...
+    ...    ${sheetname}：用例所在sheet的sheet名称
+    ...
+    ...    ${rownum}：用例所在行号（第二行开始取，取值为1）
+    ...
+    ...    ${colnum}：用例所在列号（取值断言之前的列）
+    ...
+    ...    ${code}：状态码
+    ${driver_result}    获取司机端的token和司机ID
+    ${token}    Set Variable    ${driver_result[0]}
+    ${driver_id}    Set Variable    ${driver_result[1]}
+    ${header}    添加header
+    ${params}    获取请求参数    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}
+    Comment    id 为：我的升级记录ID
+    ${newparams}    Set Variable    ${params}${driver_id}
+    ${response}    Post请求    ${newparams}    headers=${header}
+    ${json_data}    返回结果验证    ${response}
+    结果状态码验证    ${response}    ${code}
+    Comment    ${error_code}    Set Variable    ${json_data['error']}
+    Comment    Should Be Equal As Integers    ${error_code}    0
+
+B-DM034-2.0版本获取银行卡信息
+    [Arguments]    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}    ${code}
+    [Documentation]    传入参数：
+    ...
+    ...    ${excelurl} ： Excel存放的相对路径地址
+    ...
+    ...    ${sheetname}：用例所在sheet的sheet名称
+    ...
+    ...    ${rownum}：用例所在行号（第二行开始取，取值为1）
+    ...
+    ...    ${colnum}：用例所在列号（取值断言之前的列）
+    ...
+    ...    ${code}：状态码
+    ${driver_result}    获取司机端的token和司机ID
+    ${token}    Set Variable    ${driver_result[0]}
+    ${driver_id}    Set Variable    ${driver_result[1]}
+    ${header}    添加header
+    ${params}    获取请求参数    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}
+    Comment    id 为：我的升级记录ID
+    ${newparams}    Set Variable    ${params}${driver_id}
+    ${response}    Post请求    ${newparams}    headers=${header}
+    ${json_data}    返回结果验证    ${response}
+    结果状态码验证    ${response}    ${code}
+    Comment    ${error_code}    Set Variable    ${json_data['error']}
+    Comment    Should Be Equal As Integers    ${error_code}    0
+
+B-DM035-2.0版本提现功能
+    [Arguments]    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}    ${code}
+    [Documentation]    传入参数：
+    ...
+    ...    ${excelurl} ： Excel存放的相对路径地址
+    ...
+    ...    ${sheetname}：用例所在sheet的sheet名称
+    ...
+    ...    ${rownum}：用例所在行号（第二行开始取，取值为1）
+    ...
+    ...    ${colnum}：用例所在列号（取值断言之前的列）
+    ...
+    ...    ${code}：状态码
+    ${driver_result}    获取司机端的token和司机ID
+    ${token}    Set Variable    ${driver_result[0]}
+    ${driver_id}    Set Variable    ${driver_result[1]}
+    ${header}    添加header
+    ${params}    获取请求参数    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}
+    Comment    id 为：我的升级记录ID
+    ${newparams}    Set Variable    ${params}${driver_id}
+    ${response}    Post请求    ${newparams}    headers=${header}
+    ${json_data}    返回结果验证    ${response}
+    结果状态码验证    ${response}    ${code}
+    Comment    ${error_code}    Set Variable    ${json_data['error']}
+    Comment    Should Be Equal As Integers    ${error_code}    0
+
+B-DM036-2.0版本查询提现记录
+    [Arguments]    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}    ${code}
+    [Documentation]    传入参数：
+    ...
+    ...    ${excelurl} ： Excel存放的相对路径地址
+    ...
+    ...    ${sheetname}：用例所在sheet的sheet名称
+    ...
+    ...    ${rownum}：用例所在行号（第二行开始取，取值为1）
+    ...
+    ...    ${colnum}：用例所在列号（取值断言之前的列）
+    ...
+    ...    ${code}：状态码
+    ${driver_result}    获取司机端的token和司机ID
+    ${token}    Set Variable    ${driver_result[0]}
+    ${driver_id}    Set Variable    ${driver_result[1]}
+    ${header}    添加header
+    ${params}    获取请求参数    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}
+    Comment    id 为：我的升级记录ID
+    ${newparams}    Set Variable    ${params}${driver_id}
+    ${response}    Post请求    ${newparams}    headers=${header}
+    ${json_data}    返回结果验证    ${response}
+    结果状态码验证    ${response}    ${code}
+    Comment    ${error_code}    Set Variable    ${json_data['error']}
+    Comment    Should Be Equal As Integers    ${error_code}    0
+
+B-DM037-2.0版本查询司机总收入今日收入
+    [Arguments]    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}    ${code}
+    [Documentation]    传入参数：
+    ...
+    ...    ${excelurl} ： Excel存放的相对路径地址
+    ...
+    ...    ${sheetname}：用例所在sheet的sheet名称
+    ...
+    ...    ${rownum}：用例所在行号（第二行开始取，取值为1）
+    ...
+    ...    ${colnum}：用例所在列号（取值断言之前的列）
+    ...
+    ...    ${code}：状态码
+    ${driver_result}    获取司机端的token和司机ID
+    ${token}    Set Variable    ${driver_result[0]}
+    ${driver_id}    Set Variable    ${driver_result[1]}
+    ${header}    添加header
+    ${params}    获取请求参数    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}
+    Comment    id 为：我的升级记录ID
+    ${newparams}    Set Variable    ${params}${driver_id}
+    ${response}    Post请求    ${newparams}    headers=${header}
+    ${json_data}    返回结果验证    ${response}
+    结果状态码验证    ${response}    ${code}
+    Comment    ${error_code}    Set Variable    ${json_data['error']}
+    Comment    Should Be Equal As Integers    ${error_code}    0
+
+B-DM038-2.0版本查询司机支付未支付的订单信息
+    [Arguments]    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}    ${code}
+    [Documentation]    传入参数：
+    ...
+    ...    ${excelurl} ： Excel存放的相对路径地址
+    ...
+    ...    ${sheetname}：用例所在sheet的sheet名称
+    ...
+    ...    ${rownum}：用例所在行号（第二行开始取，取值为1）
+    ...
+    ...    ${colnum}：用例所在列号（取值断言之前的列）
+    ...
+    ...    ${code}：状态码
+    ${driver_result}    获取司机端的token和司机ID
+    ${token}    Set Variable    ${driver_result[0]}
+    ${driver_id}    Set Variable    ${driver_result[1]}
+    ${header}    添加header
+    ${params}    获取请求参数    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}
+    Comment    id 为：我的升级记录ID
+    ${newparams}    Set Variable    ${params}${driver_id}
+    ${response}    Post请求    ${newparams}    headers=${header}
+    ${json_data}    返回结果验证    ${response}
+    结果状态码验证    ${response}    ${code}
+    Comment    ${error_code}    Set Variable    ${json_data['error']}
+    Comment    Should Be Equal As Integers    ${error_code}    0
+
+B-DM039-2.0版本司机认证模块获取服务城市
+    [Arguments]    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}    ${code}
+    [Documentation]    传入参数：
+    ...
+    ...    ${excelurl} ： Excel存放的相对路径地址
+    ...
+    ...    ${sheetname}：用例所在sheet的sheet名称
+    ...
+    ...    ${rownum}：用例所在行号（第二行开始取，取值为1）
+    ...
+    ...    ${colnum}：用例所在列号（取值断言之前的列）
+    ...
+    ...    ${code}：状态码
+    ${driver_result}    获取司机端的token和司机ID
+    ${token}    Set Variable    ${driver_result[0]}
+    ${driver_id}    Set Variable    ${driver_result[1]}
+    ${header}    添加header
+    ${params}    获取请求参数    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}
+    Comment    id 为：我的升级记录ID
+    ${newparams}    Set Variable    ${params}${driver_id}
+    ${response}    Post请求    ${newparams}    headers=${header}
+    ${json_data}    返回结果验证    ${response}
+    结果状态码验证    ${response}    ${code}
+    Comment    ${error_code}    Set Variable    ${json_data['error']}
+    Comment    Should Be Equal As Integers    ${error_code}    0
+
+B-DM040-2.0版本司机认证模块获取分公司
+    [Arguments]    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}    ${code}
+    [Documentation]    传入参数：
+    ...
+    ...    ${excelurl} ： Excel存放的相对路径地址
+    ...
+    ...    ${sheetname}：用例所在sheet的sheet名称
+    ...
+    ...    ${rownum}：用例所在行号（第二行开始取，取值为1）
+    ...
+    ...    ${colnum}：用例所在列号（取值断言之前的列）
+    ...
+    ...    ${code}：状态码
+    ${driver_result}    获取司机端的token和司机ID
+    ${token}    Set Variable    ${driver_result[0]}
+    ${driver_id}    Set Variable    ${driver_result[1]}
+    ${header}    添加header
+    ${params}    获取请求参数    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}
+    Comment    id 为：我的升级记录ID
+    ${newparams}    Set Variable    ${params}
+    ${response}    Post请求    ${newparams}    headers=${header}
+    ${json_data}    返回结果验证    ${response}
+    结果状态码验证    ${response}    ${code}
+    ${error_code}    Set Variable    ${json_data['error']}
+    Should Be Equal As Integers    ${error_code}    0
+
+B-DM041-2.0版本司机认证模块获取所属公司
+    [Arguments]    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}    ${code}
+    [Documentation]    传入参数：
+    ...
+    ...    ${excelurl} ： Excel存放的相对路径地址
+    ...
+    ...    ${sheetname}：用例所在sheet的sheet名称
+    ...
+    ...    ${rownum}：用例所在行号（第二行开始取，取值为1）
+    ...
+    ...    ${colnum}：用例所在列号（取值断言之前的列）
+    ...
+    ...    ${code}：状态码
+    ${driver_result}    获取司机端的token和司机ID
+    ${token}    Set Variable    ${driver_result[0]}
+    ${driver_id}    Set Variable    ${driver_result[1]}
+    ${header}    添加header
+    ${params}    获取请求参数    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}
+    Comment    id 为：我的升级记录ID
+    ${newparams}    Set Variable    ${params}
+    ${response}    Post请求    ${newparams}    headers=${header}
+    ${json_data}    返回结果验证    ${response}
+    结果状态码验证    ${response}    ${code}
+    ${error_code}    Set Variable    ${json_data['error']}
+    Should Be Equal As Integers    ${error_code}    0
+
+B-DM042-2.0版本司机认证身份证认证
+    [Arguments]    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}    ${code}
+    [Documentation]    传入参数：
+    ...
+    ...    ${excelurl} ： Excel存放的相对路径地址
+    ...
+    ...    ${sheetname}：用例所在sheet的sheet名称
+    ...
+    ...    ${rownum}：用例所在行号（第二行开始取，取值为1）
+    ...
+    ...    ${colnum}：用例所在列号（取值断言之前的列）
+    ...
+    ...    ${code}：状态码
+    ${driver_result}    获取司机端的token和司机ID
+    ${token}    Set Variable    ${driver_result[0]}
+    ${driver_id}    Set Variable    ${driver_result[1]}
+    ${header}    添加header
+    ${params}    获取请求参数    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}
+    Comment    id 为：我的升级记录ID
+    ${newparams}    Set Variable    ${params}
+    ${response}    Post请求    ${newparams}    headers=${header}
+    ${json_data}    返回结果验证    ${response}
+    结果状态码验证    ${response}    ${code}
+    Comment    ${error_code}    Set Variable    ${json_data['error']}
+    Comment    Should Be Equal As Integers    ${error_code}    0

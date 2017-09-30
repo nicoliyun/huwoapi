@@ -1,0 +1,117 @@
+*** Settings ***
+Library           Collections
+Library           string
+Library           DatabaseLibrary
+Library           mylibraryrequests
+Library           mylibrarycommon
+
+*** Variables ***
+${url}            http://test.huwochuxing.com/index    # 接口地址
+${excelurl_PM}    ${CURDIR}${/}case${/}PMTest.xlsx    # 乘客管理接口用例
+${excelurl_CM}    ${CURDIR}${/}case${/}CMTest.xlsx    # 费用管理接口用例
+${excelurl_DM}    ${CURDIR}${/}case${/}DMTest.xlsx    # 司机管理接口用例
+${excelurl_LM}    ${CURDIR}${/}case${/}LMTest.xlsx    # 线路管理接口用例
+${excelurl_MM}    ${CURDIR}${/}case${/}MMTest.xlsx    # 消息管理接口用例
+${excelurl_SM}    ${CURDIR}${/}case${/}SMTest.xlsx    # 系统管理接口用例
+${excelurl_OM}    ${CURDIR}${/}case${/}OMTest.xlsx    # 订单管理接口用例
+${new_url}        http://cluster.huwochuxing.com    # 新接口的测试地址
+${excelurl_mship}    ${CURDIR}${/}case${/}2.0membership.xlsx    # 2.0版本新增乘客端的接口用例
+${excelurl_dship}    ${CURDIR}${/}case${/}2.0driver.xlsx    # 2.0版本新增司机端的接口测试用例
+${colloctionId}    \    # 乘客收藏的司机的ID（收藏的driverId）
+${orderId}        ${EMPTY}
+${photosUrl}      ${CURDIR}${/}photos${/}header.jpg
+
+*** Keywords ***
+创建session
+    Create Session    URL    ${new_url}
+
+删除session
+    Delete All Sessions
+
+获取请求参数
+    [Arguments]    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}
+    ${pamras}    Get Paras New    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}
+    [Return]    ${pamras}
+
+get请求
+    [Arguments]    ${params}    ${headers}
+    ${resp}    Get Request    URL    ${params}    ${headers}
+    [Return]    ${resp}
+
+Post请求
+    [Arguments]    ${params}    ${headers}
+    ${resp}    Post Request    URL    ${params}    headers=${headers}
+    [Return]    ${resp}
+
+结果状态码验证
+    [Arguments]    ${Response}    ${code}
+    Should Be Equal As Integers    ${Response.status_code}    ${code}    [test-info]接口返回状态码不为${code}
+
+连接数据库
+    [Arguments]    ${modul}    ${dbparas}
+    Connect To Database Using Custom Params    ${modul}    ${dbparas}
+
+断开数据库
+    Disconnect From Database
+
+数据库操作-确保数据的唯一性
+    [Arguments]    ${select}    ${delete}    ${insert}
+    ${table}    Query    ${select}
+    ${length}    Get Length    ${table}
+    Run Keyword IF    ${length}!=0    Execute Sql String    ${delete}
+    Execute Sql String    ${insert}
+
+删除数据库数据
+    [Arguments]    ${select}    ${delete}
+    ${table}    Query    ${select}
+    ${length}    Get Length    ${table}
+    Run Keyword If    ${length}!=0    Execute Sql String    ${delete}
+
+查询数据库
+    [Arguments]    ${select}
+    ${table}    Query    ${select}
+    [Return]    ${table}
+
+返回结果验证
+    [Arguments]    ${response}
+    ${data_json}    To Json    ${response.content}
+    [Return]    ${data_json}
+
+获取乘客端的token和乘客ID
+    ${params}    获取请求参数    ${excelurl_PM}    login    1    6
+    ${response}    token_Post请求    ${params}
+    结果状态码验证    ${response}    200
+    ${json_data}    To Json    ${response.content}
+    log    ${json_data['token']}
+    ${token}    Set Variable    ${json_data['token']}
+    ${memberId}    Set Variable    ${json_data['data']['id']}
+    [Return]    ${token}    ${memberId}
+
+获取司机端的token和司机ID
+    ${params}    获取请求参数    ${excelurl_DM}    dLogin    1    6
+    ${response}    token_Post请求    ${params}
+    结果状态码验证    ${response}    200
+    ${json_data}    To Json    ${response.content}
+    log    ${json_data['token']}
+    ${token}    Set Variable    ${json_data['token']}
+    ${driver_id}    Set Variable    ${json_data['data']['id']}
+    [Return]    ${token}    ${driver_id}
+
+添加header
+    ${dict}    Create Dictionary    Content-Type=application/json
+    [Return]    ${dict}
+
+token_Post请求
+    [Arguments]    ${params}
+    ${resp}    Post Request    URL    ${params}
+    [Return]    ${resp}
+
+乘客端带token的header
+    ${return_value}    获取乘客端的token和乘客ID
+    ${headers}    Create Dictionary    token=${return_value[0]}    Content-Type=application/json
+    [Return]    ${headers}
+
+司机端带token的header
+    ${token}    获取司机端的token和司机ID
+    ${headers}    Create Dictionary    token=${token}    Content-Type=application/json
+    [Return]    ${headers}

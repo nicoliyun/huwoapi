@@ -1,0 +1,378 @@
+*** Settings ***
+Documentation     创建session：获取会话session
+...
+...               删除session：会话结束后删除该session
+...
+...               Resource - elements.txt 导入的元素层作为资源文件
+...
+...               Rsource-A-PM.txt 导入的流程层作为资源文件
+Suite Setup       创建session
+Suite Teardown    删除session
+Force Tags        001
+Library           Selenium2Library
+Resource          elements.txt
+Resource          A-PM(乘客端接口逻辑).txt
+
+*** Test Cases ***
+PM-001乘客获取动态密码
+    [Documentation]    传入参数：
+    ...
+    ...    ${excelurl} ： Excel存放的相对路径地址
+    ...
+    ...    ${sheetname}：用例所在sheet的sheet名称
+    ...
+    ...    ${rownum}：用例所在行号（第二行开始取，取值为1）
+    ...
+    ...    ${colnum}：用例所在列号（取值断言之前的列）
+    ...
+    ...    ${code}：状态码
+    ...
+    ...    ${assertmsg}: 断言内容
+    A-PM001-获取动态验证码    ${excelurl_PM}    Dcode    1    5    200    True
+
+PM-002乘客登录
+    [Documentation]    传入参数：
+    ...
+    ...    ${excelurl} ： Excel存放的相对路径地址
+    ...
+    ...    ${sheetname}：用例所在sheet的sheet名称
+    ...
+    ...    ${rownum}：用例所在行号（第二行开始取，取值为1）
+    ...
+    ...    ${colnum}：用例所在列号（取值断言之前的列）
+    ...
+    ...    ${code}：状态码
+    ...
+    ...    ${errormsg} : 断言 error 值
+    A-PM002-乘客登录    ${excelurl_PM}    login    1    6    200    0
+
+PM-005乘客信息完善
+    [Documentation]    传入参数：
+    ...
+    ...    ${excelurl} ： Excel存放的相对路径地址
+    ...
+    ...    ${sheetname}：用例所在sheet的sheet名称
+    ...
+    ...    ${rownum}：用例所在行号（第二行开始取，取值为1）
+    ...
+    ...    ${colnum}：用例所在列号（取值断言之前的列）
+    ...
+    ...    ${code}：状态码
+    ...
+    ...    ${errormsg} :断言error的值
+    A-PM005-乘客信息完善    ${excelurl_PM}    edit    1    13    200    0
+
+PM-006获取乘客账户信息
+    A-PM006-获取乘客账户信息    ${excelurl_PM}    Account    1    5    200
+
+PM-007获取当前用户的优惠券信息
+    A-PM007获取当前用户的优惠券信息    ${excelurl_PM}    CouponInfo    1    7    200    0
+
+PM-008乘客推荐乘客(暂时不用)
+    A-PM008乘客推荐乘客（作废）    ${excelurl_PM}    membership    1    6    200
+
+PM-009查询附件实时司机
+    A-PM009查询附近实时司机    ${excelurl_PM}    listDrivers    1    5    200    0
+
+PM-010-2.0版本查看发票对应行程单信息
+    A-PM010-2.0版本查看发票对应的行程单信息    ${excelurl_mship}    getInvoiceOrderInfo    1    6    200    0
+
+PM-011-2.0获取发票详细内容
+    [Documentation]    接口名：乘客解除收藏的司机
+    ...
+    ...    逻辑：
+    ...
+    ...    需要先获得被收藏的司机的id,即H016的查看收藏的司机，获取到被收藏的司机id
+    ...
+    ...    通过该id去解除收藏！
+    A-PM011-2.0获取发票详细内容    ${excelurl_mship}    getInvoiceDetailInfo    1    6    200    1
+
+PM-012-2.0获取开票历史信息
+    [Documentation]    接口名：乘客解除收藏的司机
+    ...
+    ...    逻辑：
+    ...
+    ...    需要先获得被收藏的司机的id,即H016的查看收藏的司机，获取到被收藏的司机id
+    ...
+    ...    通过该id去解除收藏！
+    A-PM012-2.0获取开票历史信息    ${excelurl_mship}    getInvoiceInfo    1    5    200    0
+
+PM-013-2.0APP获取当前用户的优惠券信息
+    [Documentation]    接口名：乘客解除收藏的司机
+    ...
+    ...    逻辑：
+    ...
+    ...    需要先获得被收藏的司机的id,即H016的查看收藏的司机，获取到被收藏的司机id
+    ...
+    ...    通过该id去解除收藏！
+    A-PM013-2.0APP获取当前用户的优惠券信息    ${excelurl_mship}    getCouponInfo    1    8    200    0
+
+PM-014-2.0APP乘客获取行程信息
+    [Documentation]    接口名：乘客解除收藏的司机
+    ...
+    ...    逻辑：
+    ...
+    ...    需要先获得被收藏的司机的id,即H016的查看收藏的司机，获取到被收藏的司机id
+    ...
+    ...    通过该id去解除收藏！
+    A-PM014-2.0APP乘客获取行程信息    ${excelurl_mship}    getScheduleInfo    1    6    200    0
+
+PM-015-2.0发起主租车订单
+    [Documentation]    接口名：乘客解除收藏的司机
+    ...
+    ...    逻辑：
+    ...
+    ...    需要先获得被收藏的司机的id,即H016的查看收藏的司机，获取到被收藏的司机id
+    ...
+    ...    通过该id去解除收藏！
+    A-PM015-2.0发起主租车订单    ${excelurl_mship}    createOrder    1    5    200    0
+
+PM-040-2.0取消订单
+    [Documentation]    接口名：乘客解除收藏的司机
+    ...
+    ...    逻辑：
+    ...
+    ...    需要先获得被收藏的司机的id,即H016的查看收藏的司机，获取到被收藏的司机id
+    ...
+    ...    通过该id去解除收藏！
+    A-PM040-2.0取消订单    ${excelurl_mship}    cancelOrder    1    6    200
+
+PM-041-2.0预取消订单
+    [Documentation]    接口名：乘客解除收藏的司机
+    ...
+    ...    逻辑：
+    ...
+    ...    需要先获得被收藏的司机的id,即H016的查看收藏的司机，获取到被收藏的司机id
+    ...
+    ...    通过该id去解除收藏！
+    A-PM041-2.0 预取消订单    ${excelurl_mship}    preCancelOrder    1    6    200
+
+PM-042-2.0取消订单原因
+    [Documentation]    接口名：乘客解除收藏的司机
+    ...
+    ...    逻辑：
+    ...
+    ...    需要先获得被收藏的司机的id,即H016的查看收藏的司机，获取到被收藏的司机id
+    ...
+    ...    通过该id去解除收藏！
+    A-PM042-2.0 取消订单原因    ${excelurl_mship}    cancelOrderReason    1    6    200
+
+PM-016-2.0提交开具发票
+    [Documentation]    接口名：乘客解除收藏的司机
+    ...
+    ...    逻辑：
+    ...
+    ...    需要先获得被收藏的司机的id,即H016的查看收藏的司机，获取到被收藏的司机id
+    ...
+    ...    通过该id去解除收藏！
+    A-PM016-2.0提交开具发票    ${excelurl_mship}    getScheduleInfo    1    16    200    0
+
+PM-017-2.0获取可以开票的订单信息
+    [Documentation]    接口名：乘客解除收藏的司机
+    ...
+    ...    逻辑：
+    ...
+    ...    需要先获得被收藏的司机的id,即H016的查看收藏的司机，获取到被收藏的司机id
+    ...
+    ...    通过该id去解除收藏！
+    A-PM017-2.0获取可以开票的订单信息    ${excelurl_mship}    getCompleteOrderInfo    1    6    200    0
+
+PM-018-2.0保存乘客家庭常用公司地址
+    [Documentation]    接口名：乘客解除收藏的司机
+    ...
+    ...    逻辑：
+    ...
+    ...    需要先获得被收藏的司机的id,即H016的查看收藏的司机，获取到被收藏的司机id
+    ...
+    ...    通过该id去解除收藏！
+    A-PM018-2.0保存乘客家庭常用公司地址    ${excelurl_mship}    saveMemberShipAddress    1    14    200    0
+
+PM-019-2.0出租车发起订单增加小费(作废)
+    [Documentation]    接口名：乘客解除收藏的司机
+    ...
+    ...    逻辑：
+    ...
+    ...    需要先获得被收藏的司机的id,即H016的查看收藏的司机，获取到被收藏的司机id
+    ...
+    ...    通过该id去解除收藏！
+    A-PM019-2.0出租车发起订单增加小费(作废)    ${excelurl_mship}    addFeeOrder    1    6    200    0
+
+PM-020-2.0删除常用地址
+    [Documentation]    传入参数：
+    ...
+    ...    ${excelurl} ： Excel存放的相对路径地址
+    ...
+    ...    ${sheetname}：用例所在sheet的sheet名称
+    ...
+    ...    ${rownum}：用例所在行号（第二行开始取，取值为1）
+    ...
+    ...    ${colnum}：用例所在列号（取值断言之前的列）
+    ...
+    ...    ${code}：状态码
+    ...
+    ...    ${errormsg} : 断言error 的值
+    A-PM020-2.0删除常用地址    ${excelurl_mship}    deleteMemberShipAddress    1    14    200    0
+
+PM-021-2.0下单的时候自己选择司机
+    [Documentation]    接口名：乘客解除收藏的司机
+    ...
+    ...    逻辑：
+    ...
+    ...    需要先获得被收藏的司机的id,即H016的查看收藏的司机，获取到被收藏的司机id
+    ...
+    ...    通过该id去解除收藏！
+    A-PM021-2.0下单的时候自己选择司机    ${excelurl_mship}    selectDriver    1    6    200    0
+
+PM-022-2.0乘客收藏司机
+    A-PM022-2.0乘客收藏司机    ${excelurl_mship}    collectionDrivers    1    6    200    0
+    ...    True    收藏成功
+
+PM-023-2.0查看收藏的司机
+    A-PM023-2.0查看收藏的司机    ${excelurl_mship}    listDriversByMembershipID    1    5    200    0
+
+PM-024-2.0乘客解除收藏的司机
+    [Documentation]    接口名：乘客解除收藏的司机
+    ...
+    ...    逻辑：
+    ...
+    ...    需要先获得被收藏的司机的id,即H016的查看收藏的司机，获取到被收藏的司机id
+    ...
+    ...    通过该id去解除收藏！
+    A-PM024-2.0乘客解除收藏的司机    ${excelurl_mship}    cancelCollectionDrivers    1    5    200    0
+
+PM-025-2.0历史乘车人
+    [Documentation]    接口名：乘客解除收藏的司机
+    ...
+    ...    逻辑：
+    ...
+    ...    需要先获得被收藏的司机的id,即H016的查看收藏的司机，获取到被收藏的司机id
+    ...
+    ...    通过该id去解除收藏！
+    A-PM025-2.0历史乘车人    ${excelurl_mship}    listHistoryOtherPassenger    1    5    200    0
+
+PM-026-2.0城市开通业务板块
+    [Documentation]    接口名：乘客解除收藏的司机
+    ...
+    ...    逻辑：
+    ...
+    ...    需要先获得被收藏的司机的id,即H016的查看收藏的司机，获取到被收藏的司机id
+    ...
+    ...    通过该id去解除收藏！
+    A-PM026-2.0城市开通业务板块    ${excelurl_mship}    requiement    1    7    200    0
+
+PM-027-2.0城市列表
+    [Documentation]    接口名：乘客解除收藏的司机
+    ...
+    ...    逻辑：
+    ...
+    ...    需要先获得被收藏的司机的id,即H016的查看收藏的司机，获取到被收藏的司机id
+    ...
+    ...    通过该id去解除收藏！
+    A-PM027-2.0城市列表    ${excelurl_mship}    findAllCity    1    4    200    0
+
+PM-028-2.0查询用户反馈信息列表
+    [Documentation]    接口名：乘客解除收藏的司机
+    ...
+    ...    逻辑：
+    ...
+    ...    需要先获得被收藏的司机的id,即H016的查看收藏的司机，获取到被收藏的司机id
+    ...
+    ...    通过该id去解除收藏！
+    A-PM028-2.0查询用户反馈信息列表    ${excelurl_mship}    feedBackList    1    10    200    0
+    ...    查询成功    True
+
+PM-029-2.0航班查询
+    A-PM029-2.0航班查询    ${excelurl_mship}    select_flightNo    1    6    200    0
+
+PM-030-2.0用户反馈
+    [Documentation]    接口名：乘客解除收藏的司机
+    ...
+    ...    逻辑：
+    ...
+    ...    需要先获得被收藏的司机的id,即H016的查看收藏的司机，获取到被收藏的司机id
+    ...
+    ...    通过该id去解除收藏！
+    A-PM030-2.0用户反馈    ${excelurl_mship}    feedBack    1    10    200    0
+    ...    提交成功    True
+
+PM-031-2.0查看司机信息(待修改)
+    [Documentation]    接口名：乘客解除收藏的司机
+    ...
+    ...    逻辑：
+    ...
+    ...    需要先获得被收藏的司机的id,即H016的查看收藏的司机，获取到被收藏的司机id
+    ...
+    ...    通过该id去解除收藏！
+    A-PM031-2.0查看司机信息(待修改)    ${excelurl_mship}    findMembershipById    1    5    200    0
+
+PM-032-2.0文件上传接口
+    [Documentation]    接口名：乘客解除收藏的司机
+    ...
+    ...    逻辑：
+    ...
+    ...    需要先获得被收藏的司机的id,即H016的查看收藏的司机，获取到被收藏的司机id
+    ...
+    ...    通过该id去解除收藏！
+    A-PM032-2.0文件上传接口    200
+
+PM-033-2.0版本介绍
+    [Documentation]    接口名：乘客解除收藏的司机
+    ...
+    ...    逻辑：
+    ...
+    ...    需要先获得被收藏的司机的id,即H016的查看收藏的司机，获取到被收藏的司机id
+    ...
+    ...    通过该id去解除收藏！
+    A-PM033-2.0版本介绍    200
+
+PM-034-2.0法律条款
+    [Documentation]    接口名：乘客解除收藏的司机
+    ...
+    ...    逻辑：
+    ...
+    ...    需要先获得被收藏的司机的id,即H016的查看收藏的司机，获取到被收藏的司机id
+    ...
+    ...    通过该id去解除收藏！
+    A-PM034-2.0法律条款    200
+
+PM-035-2.0联系我们
+    [Documentation]    接口名：乘客解除收藏的司机
+    ...
+    ...    逻辑：
+    ...
+    ...    需要先获得被收藏的司机的id,即H016的查看收藏的司机，获取到被收藏的司机id
+    ...
+    ...    通过该id去解除收藏！
+    A-PM035-2.0联系我们    200
+
+PM-036-2.0奖励规则
+    [Documentation]    接口名：乘客解除收藏的司机
+    ...
+    ...    逻辑：
+    ...
+    ...    需要先获得被收藏的司机的id,即H016的查看收藏的司机，获取到被收藏的司机id
+    ...
+    ...    通过该id去解除收藏！
+    A-PM036-2.0奖励规则    200
+
+PM-037-2.0客服中心
+    [Documentation]    接口名：乘客解除收藏的司机
+    ...
+    ...    逻辑：
+    ...
+    ...    需要先获得被收藏的司机的id,即H016的查看收藏的司机，获取到被收藏的司机id
+    ...
+    ...    通过该id去解除收藏！
+    A-PM037-2.0客服中心    200
+
+PM-038乘客退出登录
+    A-PM038-乘客退出登录    ${excelurl_PM}    logout    1    5    200
+
+PM-039乘客重新登录
+    A-PM039-乘客重新登录    ${excelurl_PM}    RefreshToken    1    6    200
+
+PM-043是否可以取消绑定
+    A-PM043-2.0是否可以取消绑定    ${excelurl_mship}    isCollection    1    5    200    0
+
+PM-044删除历史乘车人
+    A-PM044-2.0删除历史乘车人    ${excelurl_mship}    deleteHistoryOtherPassenger    1    5    200    0

@@ -1,0 +1,32 @@
+*** Settings ***
+Library           requests
+Resource          elements.txt
+
+*** Keywords ***
+C-OM001司机更新经纬度坐标
+    [Arguments]    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}    ${code}    ${errormsg}
+    ${driver_result}    获取司机端的token和司机ID
+    ${token}    Set Variable    ${driver_result[0]}
+    ${driver_id}    Set Variable    ${driver_result[1]}
+    ${header}    添加header
+    ${params}    获取请求参数    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}
+    ${news_params}    Set Variable    ${params}${token}&id=${driver_id}
+    ${response}    Post请求    ${news_params}    headers=${header}
+    结果状态码验证    ${response}    200
+    ${json_data}    返回结果验证    ${response}
+    ${error_code}    Set Variable    ${json_data['error']}
+    ${resp_success}    Set Variable    ${json_data['success']}
+    Should Be Equal As Numbers    ${error_code}    ${errormsg}
+    Should Be Equal As Strings    ${resp_success}    True
+
+C-OM002手机APP乘客创建订单
+    [Arguments]    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}    ${code}
+    ${return_value}    获取乘客端的token和乘客ID
+    ${token}    Set Variable    ${return_value[0]}
+    ${memberId}    Set Variable    ${return_value[1]}
+    ${header}    添加header
+    ${params}    获取请求参数    ${excelurl}    ${sheetname}    ${rownum}    ${colnum}
+    ${news_params}    Set Variable    ${params}${token}&memberId=${memberId}
+    ${response}    Post请求    ${news_params}     headers=${header}
+    结果状态码验证    ${response}    200
+    ${json_data}    返回结果验证    ${response}
